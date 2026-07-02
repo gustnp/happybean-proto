@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>해피빈 캠페인 프로토타입</title>
+<style>
+  :root{
+    --primary:#2f7fd4; --accent:#16c265;
+    --hero-from:#cfe7fb; --hero-to:#eef7e9;
+    --band1:#eaf4fd; --band2:#eaf7ef;
+    --ink:#2c2f33; --body:#5b6168; --muted:#9aa0a6;
+    --card:#fff; --line:#eceef0; --skeleton:#e3e6ea;
+    --w:960px;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{margin:0;background:#fff;color:var(--body);
+    font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+    -webkit-font-smoothing:antialiased;}
+  .container{max-width:var(--w);margin:0 auto;padding:0 24px;}
+  .band{padding:clamp(52px,7vw,84px) 0;}
+  .band.tight{padding:clamp(28px,4vw,44px) 0;}
+  .band.b-hero{background:linear-gradient(180deg,var(--hero-from),var(--hero-to));}
+  .band.b-band1{background:var(--band1);}
+  .band.b-band2{background:var(--band2);}
+  .center{text-align:center;}
+  .pre{white-space:pre-line;}
+  .h1{font-size:clamp(28px,4.6vw,42px);font-weight:800;line-height:1.34;color:var(--ink);}
+  .h2{font-size:clamp(22px,3.4vw,30px);font-weight:800;line-height:1.36;color:var(--ink);}
+  .lead{font-size:clamp(15px,1.8vw,17px);line-height:1.68;}
+  .eyebrow{display:inline-block;background:#fff;color:var(--primary);border:1px solid var(--line);
+    font-size:13px;font-weight:700;padding:7px 16px;border-radius:20px;}
+  .stack>*+*{margin-top:18px;}
+
+  .img-ph{border:2px dashed #c4ccd2;border-radius:16px;background:#f6f8fa;
+    display:flex;align-items:center;justify-content:center;text-align:center;
+    color:var(--muted);font-size:13px;min-height:150px;padding:20px;line-height:1.6;}
+  .img-real{border-radius:16px;width:100%;display:block;}
+
+  .pill-btn{display:inline-flex;align-items:center;justify-content:center;min-height:50px;
+    padding:0 34px;background:var(--accent);color:#fff;border-radius:28px;font-weight:700;
+    font-size:16px;box-shadow:0 6px 14px rgba(0,0,0,.12);}
+  .pill-btn.ghost{background:#fff;color:var(--primary);border:1.5px solid var(--primary);
+    box-shadow:none;min-height:42px;padding:0 24px;font-size:14px;}
+  .bean{display:inline-block;background:#fff;border:1px solid var(--line);color:var(--body);
+    font-size:13px;font-weight:700;padding:7px 16px;border-radius:18px;}
+  .bean:before{content:"🌱 ";}
+
+  .bubble{position:relative;display:inline-block;background:#fff;border:1px solid var(--line);
+    border-radius:18px;padding:22px 30px;max-width:540px;box-shadow:0 8px 20px rgba(0,0,0,.05);}
+  .bubble:after{content:"";position:absolute;left:50%;bottom:-11px;transform:translateX(-50%) rotate(45deg);
+    width:20px;height:20px;background:#fff;border-right:1px solid var(--line);border-bottom:1px solid var(--line);}
+  .qcard{display:flex;align-items:center;gap:16px;background:#fff;border:1px solid var(--line);
+    border-radius:16px;padding:20px 22px;box-shadow:0 4px 12px rgba(0,0,0,.04);text-align:left;}
+  .qcard .ic{flex:none;width:48px;height:48px;border-radius:50%;background:var(--band1);}
+  .qcard.correct{border:2px solid var(--primary);}
+  .cards-3{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;}
+  .chan-card{background:#fff;border:1px solid var(--line);border-radius:18px;
+    padding:28px 20px;text-align:center;box-shadow:0 6px 16px rgba(0,0,0,.05);}
+  .chan-badge{display:inline-block;background:var(--primary);color:#fff;font-size:12.5px;
+    font-weight:700;padding:6px 14px;border-radius:16px;}
+  .chan-title{font-size:17px;font-weight:800;color:var(--ink);margin-top:14px;}
+  .chan-desc{font-size:14px;line-height:1.6;margin-top:10px;}
+
+  .social-row{display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap;}
+  .social{width:44px;height:44px;border-radius:12px;background:var(--skeleton);
+    display:flex;align-items:center;justify-content:center;font-size:10px;color:#aaa;overflow:hidden;}
+  .amount{font-size:clamp(30px,5vw,46px);font-weight:800;color:var(--primary);}
+
+  /* GNB / 푸터 (공통 고정) */
+  .gnb{background:#fff;border-bottom:1px solid #eef0f2;}
+  .gnb-inner{display:flex;align-items:center;height:70px;gap:20px;}
+  .gnb-logo{flex:none;display:flex;align-items:center;gap:9px;font-size:21px;font-weight:800;color:#03c75a;}
+  .gnb-logo .n{width:28px;height:28px;border-radius:7px;background:#03c75a;color:#fff;font-size:17px;
+    font-weight:800;display:flex;align-items:center;justify-content:center;}
+  .gnb-menu{flex:1;display:flex;justify-content:center;gap:48px;font-size:17px;color:#333;font-weight:700;}
+  .gnb-menu .on{color:#03c75a;}
+  .gnb-right{flex:none;display:flex;align-items:center;gap:7px;font-size:16px;color:#333;font-weight:700;}
+  .gnb-right svg{width:19px;height:19px;stroke:#555;fill:none;}
+  .ft{background:#f4f6f7;color:#9098a0;padding:40px 0;font-size:12.5px;line-height:1.8;}
+  .ft b{color:#6b7178;font-weight:700;}
+
+  /* 플로팅 위젯 */
+  .floating{position:fixed;top:96px;right:24px;z-index:55;background:var(--primary);border-radius:18px;
+    padding:13px 22px;text-align:center;box-shadow:0 8px 18px rgba(0,0,0,.25);color:#fff;}
+  .floating .lbl{font-size:12px;font-weight:700;opacity:.9;}
+  .floating .val{font-size:23px;font-weight:800;color:#f1ff3d;margin-top:3px;}
+  .floating .val small{font-size:13px;color:#fff;font-weight:700;margin-left:3px;}
+  .floating .stamp{width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.25);
+    margin:8px auto 0;border:2px dashed rgba(255,255,255,.6);}
+
+  /* 댓글 (공통 고정) */
+  .cmt{border-top:2px solid #eef0f2;padding-top:28px;}
+  .cmt-head{font-size:15px;color:var(--ink);font-weight:700;margin-bottom:16px;}
+  .cmt-head b{color:var(--accent);}
+  .cmt-write{display:flex;gap:10px;margin-bottom:6px;}
+  .cmt-input{flex:1;border:1px solid var(--line);border-radius:12px;background:#fafbfc;
+    padding:16px 18px;color:var(--muted);font-size:14px;min-height:62px;}
+  .cmt-submit{flex:none;display:flex;align-items:center;background:var(--accent);color:#fff;
+    font-weight:700;border-radius:12px;padding:0 26px;font-size:15px;}
+  .cmt-item{display:flex;gap:14px;padding:20px 2px;border-top:1px solid #eef0f2;}
+  .cmt-item .av{flex:none;width:40px;height:40px;border-radius:50%;background:var(--skeleton);}
+  .cmt-name{font-weight:700;color:var(--ink);font-size:14px;}
+  .cmt-date{color:var(--muted);font-size:12.5px;margin-left:8px;}
+  .cmt-text{font-size:14px;line-height:1.6;margin-top:6px;}
+  .cmt-act{margin-top:10px;font-size:12.5px;color:var(--muted);display:flex;gap:16px;}
+  .more{display:inline-block;border:1px solid var(--line);border-radius:24px;
+    padding:13px 30px;color:var(--muted);font-size:14px;background:#fff;}
+
+  /* ===== 모드: 기획(plan) 주석 ===== */
+  .plan-note{max-width:var(--w);margin:0 auto;padding:0 24px;display:none;}
+  .plan-note .inner{display:flex;gap:10px;align-items:flex-start;margin:18px 0 0;flex-wrap:wrap;}
+  .plan-tag{flex:none;background:#3c4148;color:#fff;font-size:12px;font-weight:700;padding:5px 12px;border-radius:6px;}
+  .plan-txt{margin:0;font-size:13px;line-height:1.6;color:#4a505a;background:#f1f3f5;
+    border:1px solid #e3e6ea;border-radius:8px;padding:8px 13px;flex:1;min-width:240px;}
+  body.mode-plan .plan-note{display:block;}
+
+  /* ===== 모드: 스펙(spec) 시트 ===== */
+  .spec-sheet{max-width:var(--w);margin:0 auto;padding:0 24px;display:none;}
+  .spec-card{border:1px solid #dfe3e8;border-left:4px solid var(--primary);border-radius:8px;
+    background:#fbfcfd;padding:16px 20px;margin:14px 0 0;font-size:13px;line-height:1.7;color:#3c4148;}
+  .spec-card h4{margin:0 0 8px;font-size:13px;color:var(--primary);}
+  .spec-card ul{margin:4px 0;padding-left:18px;}
+  body.mode-spec .spec-sheet{display:block;}
+
+  /* 기획 문서 헤더 (plan/spec 모드에서만) */
+  .doc-head{display:none;background:#23262b;color:#e8eaed;padding:34px 0;}
+  .doc-head h1{margin:0 0 8px;font-size:22px;}
+  .doc-head .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:8px 24px;
+    font-size:13.5px;line-height:1.7;margin-top:14px;}
+  .doc-head .grid b{color:#fff;}
+  body.mode-plan .doc-head,body.mode-spec .doc-head{display:block;}
+
+  /* 툴바 */
+  .topbar{position:sticky;top:0;z-index:60;background:#1f2226;color:#eee;
+    display:flex;align-items:center;justify-content:space-between;gap:12px;
+    padding:10px 18px;font-size:13px;flex-wrap:wrap;}
+  .topbar .label b{color:#fff;}
+  .seg{display:flex;background:#33373c;border-radius:20px;padding:3px;}
+  .seg button{border:0;background:transparent;color:#bbb;font-size:12.5px;font-weight:700;
+    padding:6px 16px;border-radius:16px;cursor:pointer;}
+  .seg button.on{background:var(--accent);color:#fff;}
+  .tb-btn{background:#33373c;border:1px solid #4a4f55;color:#fff;padding:7px 13px;border-radius:20px;
+    font-size:12.5px;cursor:pointer;}
+
+  @media (max-width:760px){
+    .cards-3{grid-template-columns:1fr;}
+    .gnb-inner{gap:12px;}
+    .gnb-menu{gap:18px;font-size:13.5px;}
+    .gnb-logo{font-size:18px;}
+    .floating{top:auto;bottom:14px;right:12px;padding:10px 16px;}
+  }
+  @media print{.topbar{display:none!important;}}
+</style>
+</head>
+<body class="mode-design">
+
+<div class="topbar">
+  <span class="label" id="tbLabel"><b>해피빈 캠페인 프로토타입</b></span>
+  <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+    <div class="seg">
+      <button data-mode="design" class="on">시안</button>
+      <button data-mode="plan">기획 문서</button>
+      <button data-mode="spec">제작 스펙</button>
+    </div>
+    <button class="tb-btn" onclick="window.print()">인쇄·PDF</button>
+  </div>
+</div>
+
+<div id="app"></div>
+
+<!-- 캠페인 데이터 로드: 새 캠페인 추가 시 아래에 script 한 줄 추가 -->
+<script src="campaigns/kookmincall110.js"></script>
+
+<script>
+(function(){
+  /* ---------- 캠페인 선택: ?c=아이디, 없으면 첫 번째 ---------- */
+  var reg = window.CAMPAIGNS||{};
+  var ids = Object.keys(reg);
+  if(!ids.length){document.getElementById('app').innerHTML='<p style="padding:40px;text-align:center;">캠페인 데이터가 없습니다.</p>';return;}
+  var qid = new URLSearchParams(location.search).get('c');
+  var C = reg[qid] || reg[ids[0]];
+
+  /* ---------- 테마 주입 ---------- */
+  var r=document.documentElement.style, t=C.theme||{};
+  if(t.primary) r.setProperty('--primary',t.primary);
+  if(t.accent)  r.setProperty('--accent',t.accent);
+  if(t.heroFrom)r.setProperty('--hero-from',t.heroFrom);
+  if(t.heroTo)  r.setProperty('--hero-to',t.heroTo);
+  if(t.band1)   r.setProperty('--band1',t.band1);
+  if(t.band2)   r.setProperty('--band2',t.band2);
+  document.title = C.meta.name + ' · 해피빈 프로토타입';
+  document.getElementById('tbLabel').innerHTML='<b>'+esc(C.meta.name)+'</b> · '+esc(C.meta.status||'');
+
+  /* ---------- 유틸 ---------- */
+  function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+  function pre(s){return esc(s);} /* .pre 클래스가 줄바꿈 처리 */
+  function bandCls(b){return b==='band1'?'b-band1':b==='band2'?'b-band2':'';}
+  function img(src,note,h){
+    return src ? '<img class="img-real" src="'+esc(src)+'" alt="">'
+      : '<div class="img-ph" style="min-height:'+(h||180)+'px;">'+esc(note||'이미지 영역')+'</div>';
+  }
+  function plan(tag,txt){
+    if(!txt) return '';
+    return '<div class="plan-note"><div class="inner"><span class="plan-tag">'+esc(tag)+'</span><p class="plan-txt">'+esc(txt)+'</p></div></div>';
+  }
+  function spec(tag,s){
+    if(!s) return '';
+    var a=(s.assets&&s.assets.length)?'<h4>필요 에셋</h4><ul>'+s.assets.map(function(x){return '<li>'+esc(x)+'</li>';}).join('')+'</ul>':'';
+    var i=s.interaction?'<h4>인터랙션 정의</h4>'+esc(s.interaction):'';
+    var n=s.note?'<div style="margin-top:6px;color:#8a4d0f;">※ '+esc(s.note)+'</div>':'';
+    return '<div class="spec-sheet"><div class="spec-card"><h4>['+esc(tag)+'] 제작 스펙</h4>'+a+i+n+'</div></div>';
+  }
+
+  /* ---------- 미션 렌더러 ---------- */
+  var missionRenderers={
+    quiz:function(m){
+      var cards=m.answers.map(function(a){
+        return '<div class="qcard'+(String(a.note||'').indexOf('정답')>-1?' correct':'')+'"><div class="ic"></div><div class="lead pre">'+pre(a.t)+'</div></div>';
+      }).join('');
+      return '<section class="band '+bandCls(m.band)+'"><div class="container center">'
+        +(m.section?'<div class="h2 pre">'+pre(m.section)+'</div>':'')
+        +'<div style="margin-top:28px;"><div class="bubble"><div class="lead pre" style="font-weight:700;color:var(--ink);">'+pre(m.question)+'</div></div></div>'
+        +'<div class="stack" style="max-width:580px;margin:36px auto 0;">'+cards+'</div>'
+        +(m.bean?'<div style="margin-top:26px;"><span class="bean">'+esc(m.bean)+'</span></div>':'')
+        +'<div style="margin-top:18px;"><span class="pill-btn">'+esc(m.cta||'확인했어요! 콩 받기')+'</span></div>'
+        +'</div></section>';
+    },
+    story:function(m){
+      return '<section class="band '+bandCls(m.band)+'"><div class="container center stack">'
+        +'<div class="h2 pre">'+pre(m.title)+'</div>'
+        +(m.sub?'<div class="lead pre">'+pre(m.sub)+'</div>':'')
+        +img(m.image,m.imageNote,240)
+        +(m.bean?'<div><span class="bean">'+esc(m.bean)+'</span></div>':'')
+        +(m.cta?'<div><span class="pill-btn">'+esc(m.cta)+'</span></div>':'')
+        +'</div></section>';
+    },
+    channels:function(m){
+      var cards=m.items.map(function(it){
+        return '<div class="chan-card">'
+          +(it.badge?'<span class="chan-badge">'+esc(it.badge)+'</span>':'')
+          +'<div class="chan-title pre">'+pre(it.title)+'</div>'
+          +'<div class="chan-desc pre">'+pre(it.desc)+'</div>'
+          +(it.cta?'<div style="margin-top:16px;"><span class="pill-btn ghost">'+esc(it.cta)+'</span></div>':'')
+          +'</div>';
+      }).join('');
+      return '<section class="band '+bandCls(m.band)+'"><div class="container center">'
+        +'<div class="h2 pre" style="max-width:680px;margin:0 auto;">'+pre(m.head)+'</div>'
+        +'<div class="cards-3" style="margin-top:40px;">'+cards+'</div>'
+        +'</div></section>';
+    },
+    video:function(m){
+      return '<section class="band '+bandCls(m.band)+'"><div class="container center stack">'
+        +(m.title?'<div class="h2 pre">'+pre(m.title)+'</div>':'')
+        +(m.sub?'<div class="lead pre">'+pre(m.sub)+'</div>':'')
+        +'<div class="img-ph" style="min-height:300px;">▶ 영상 임베드: '+esc(m.videoNote||m.videoUrl||'유튜브 영상')+'</div>'
+        +(m.bean?'<div><span class="bean">'+esc(m.bean)+'</span></div>':'')
+        +(m.cta?'<div><span class="pill-btn">'+esc(m.cta)+'</span></div>':'')
+        +'</div></section>';
+    },
+    cards:function(m){
+      var cards=(m.items||[]).map(function(it){
+        return '<div class="chan-card">'
+          +(it.badge?'<span class="chan-badge">'+esc(it.badge)+'</span>':'')
+          +'<div class="chan-title pre">'+pre(it.title)+'</div>'
+          +'<div class="chan-desc pre">'+pre(it.desc)+'</div></div>';
+      }).join('');
+      return '<section class="band '+bandCls(m.band)+'"><div class="container center">'
+        +(m.head?'<div class="h2 pre">'+pre(m.head)+'</div>':'')
+        +'<div class="cards-3" style="margin-top:40px;">'+cards+'</div>'
+        +(m.bean?'<div style="margin-top:26px;"><span class="bean">'+esc(m.bean)+'</span></div>':'')
+        +(m.cta?'<div style="margin-top:18px;"><span class="pill-btn">'+esc(m.cta)+'</span></div>':'')
+        +'</div></section>';
+    },
+    cta:function(m){
+      return '<section class="band tight '+bandCls(m.band)+'"><div class="container center stack">'
+        +(m.title?'<div class="h2 pre">'+pre(m.title)+'</div>':'')
+        +'<div><span class="pill-btn">'+esc(m.cta||'바로가기')+'</span></div>'
+        +'</div></section>';
+    },
+    custom:function(m){
+      /* 커스텀 미션 = 이 캠페인만의 신규 인터랙션. 시안 모드에서는 콘셉트 카드로 노출 */
+      return '<section class="band '+bandCls(m.band)+'"><div class="container center stack">'
+        +(m.title?'<div class="h2 pre">'+pre(m.title)+'</div>':'')
+        +(m.sub?'<div class="lead pre">'+pre(m.sub)+'</div>':'')
+        +'<div class="img-ph" style="min-height:260px;">[커스텀 미션] '+esc(m.concept||'이 캠페인 전용 인터랙션 — 스펙 모드에서 정의 확인')+'</div>'
+        +(m.bean?'<div><span class="bean">'+esc(m.bean)+'</span></div>':'')
+        +(m.cta?'<div><span class="pill-btn">'+esc(m.cta)+'</span></div>':'')
+        +'</div></section>';
+    }
+  };
+
+  /* ---------- 페이지 조립 ---------- */
+  var H='';
+
+  /* 기획 문서 헤더 */
+  var mm=C.meta;
+  H+='<div class="doc-head"><div class="container"><h1>'+esc(mm.name)+' — 캠페인 기획서</h1>'
+    +'<div class="grid">'
+    +'<div><b>클라이언트</b><br>'+esc(mm.client)+'</div>'
+    +'<div><b>담당</b><br>'+esc(mm.pm)+'</div>'
+    +'<div><b>상태</b><br>'+esc(mm.status)+'</div>'
+    +'<div><b>캠페인 기간</b><br>'+esc(mm.period)+'</div>'
+    +'<div><b>'+esc(mm.beanDate)+'</b></div>'
+    +'<div style="grid-column:1/-1;"><b>목표</b><br>'+esc(mm.goal)+'</div>'
+    +'<div style="grid-column:1/-1;"><b>KPI</b><br>'+esc(mm.kpi)+'</div>'
+    +'<div style="grid-column:1/-1;"><b>디자인 톤</b><br>'+esc((C.theme||{}).mood||'')+'</div>'
+    +'</div></div></div>';
+
+  /* GNB (고정) */
+  H+='<header class="gnb"><div class="container gnb-inner">'
+    +'<div class="gnb-logo"><span class="n">N</span> 해피빈</div>'
+    +'<nav class="gnb-menu"><span>기부</span><span>펀딩</span><span>공감가게</span><span>가볼까</span><span class="on">굿액션</span></nav>'
+    +'<div class="gnb-right"><svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"></circle><line x1="16.5" y1="16.5" x2="21" y2="21"></line></svg> MY</div>'
+    +'</div></header>';
+
+  /* 플로팅 위젯 */
+  var F=C.floating||{};
+  if(F.type==='stamps'){
+    var st='';for(var i=0;i<(F.count||3);i++)st+='<div class="stamp"></div>';
+    H+='<div class="floating"><div class="lbl">'+esc(F.label||'미션 스탬프')+'</div>'+st
+      +(F.cta?'<div style="margin-top:10px;font-size:13px;font-weight:800;background:#fff;color:var(--primary);border-radius:14px;padding:6px 12px;">'+esc(F.cta)+'</div>':'')+'</div>';
+  }else{
+    H+='<div class="floating"><div class="lbl">'+esc(F.label||'캠페인 참여 수')+'</div>'
+      +'<div class="val">'+esc(F.value||'00,000')+'<small>'+esc(F.unit||'건')+'</small></div></div>';
+  }
+
+  /* 히어로 */
+  var he=C.hero;
+  H+=plan('히어로',he.plan);
+  H+='<section class="band b-hero"><div class="container center stack">'
+    +'<span class="eyebrow">'+esc(he.org)+'</span>'
+    +'<div class="h1 pre">'+pre(he.title)+'</div>'
+    +(he.sub?'<div class="lead pre">'+pre(he.sub)+'</div>':'')
+    +img(he.image,he.imageNote,230)
+    +'</div></section>';
+  H+=spec('히어로',he.spec);
+
+  /* 미션 슬롯 */
+  (C.missions||[]).forEach(function(m,i){
+    var tag='미션 '+(i+1)+' · '+m.type;
+    H+=plan(tag,m.plan);
+    H+=(missionRenderers[m.type]||missionRenderers.custom)(m);
+    H+=spec(tag,m.spec);
+  });
+
+  /* SNS 밴드 */
+  var sn=C.sns;
+  if(sn){
+    H+=plan('SNS',sn.plan);
+    H+='<section class="band tight b-band2"><div class="container social-row">'
+      +'<div class="lead" style="font-weight:700;color:var(--ink);">'+esc(sn.copy)+'</div>'
+      +(sn.channels||[]).map(function(c){return '<div class="social">'+esc(c.slice(0,4))+'</div>';}).join('')
+      +'</div></section>';
+    H+=spec('SNS',sn.spec);
+  }
+
+  /* 기부금 */
+  var dn=C.donation;
+  if(dn){
+    H+=plan('기부금 안내',dn.plan);
+    H+='<section class="band"><div class="container center stack">'
+      +'<div class="lead">'+esc(dn.lead)+' <span class="amount">'+esc(dn.amount)+'</span>'+esc(dn.desc)+'</div>'
+      +(dn.cta?'<div><span class="pill-btn ghost">'+esc(dn.cta)+' →</span></div>':'')
+      +'</div></section>';
+    H+=spec('기부금 안내',dn.spec);
+  }
+
+  /* 공유 밴드 */
+  var sh=C.share;
+  if(sh){
+    H+=plan('공유하기',sh.plan);
+    H+='<section class="band tight b-band1"><div class="container social-row">'
+      +'<div class="lead" style="font-weight:700;color:var(--ink);">'+esc(sh.copy)+'</div>'
+      +(sh.channels||[]).map(function(c){return '<div class="social">'+esc(c.slice(0,4))+'</div>';}).join('')
+      +'</div></section>';
+    H+=spec('공유하기',sh.spec);
+  }
+
+  /* 댓글 참여 (공통 고정 컴포넌트) */
+  var cm=C.comments;
+  if(cm){
+    H+=plan('댓글 참여',cm.plan);
+    H+='<section class="band"><div class="container">'
+      +'<div class="center stack" style="margin-bottom:30px;">'
+      +'<div class="h2 pre">'+pre(cm.title)+'</div>'
+      +'<div class="lead">'+esc(cm.guide)+'</div>'
+      +'<div style="font-size:14px;color:var(--muted);">'+esc(cm.period)+'<br>'+esc(cm.beanDate)+'</div>'
+      +(cm.disclaimer?'<div style="font-size:12.5px;color:var(--muted);">'+esc(cm.disclaimer)+'</div>':'')
+      +'</div>'
+      +'<div class="cmt"><div class="cmt-head">총 <b>0</b>개의 댓글</div>'
+      +'<div class="cmt-write"><div class="cmt-input">댓글을 남겨보세요 (로그인 후 작성)</div><div class="cmt-submit">등록</div></div>'
+      +'<div class="cmt-item"><div class="av"></div><div><div><span class="cmt-name">user****</span><span class="cmt-date">2026.06.08</span></div>'
+      +'<div class="cmt-text">실제 작성된 댓글이 이 영역에 노출됩니다.</div>'
+      +'<div class="cmt-act"><span>답글</span><span>♡ 0</span></div></div></div>'
+      +'<div class="center" style="margin-top:22px;"><span class="more">댓글 더보기</span></div>'
+      +'</div></div></section>';
+    H+=spec('댓글 참여',cm.spec);
+  }
+
+  /* 푸터 (고정) */
+  H+='<footer class="ft"><div class="container">'
+    +'<div><b>해피빈</b> · 공지사항 · 자주 묻는 질문 · 이용약관 · 개인정보처리방침</div>'
+    +'<div style="margin-top:10px;">주식회사 네이버 · 운영기관 정보 · 사업자등록번호 000-00-00000</div>'
+    +'<div style="margin-top:6px;">Copyright © NAVER Corp. All Rights Reserved.</div>'
+    +'</div></footer>';
+
+  document.getElementById('app').innerHTML=H;
+
+  /* ---------- 모드 토글 ---------- */
+  var segBtns=document.querySelectorAll('.seg button');
+  segBtns.forEach(function(b){
+    b.addEventListener('click',function(){
+      segBtns.forEach(function(x){x.classList.remove('on');});
+      b.classList.add('on');
+      document.body.className='mode-'+b.dataset.mode;
+    });
+  });
+})();
+</script>
+</body>
+</html>
