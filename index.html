@@ -339,7 +339,34 @@
     .floating{top:auto;bottom:14px;right:12px;padding:10px 16px;}
     .ep{width:100vw;}
   }
-  @media print{.topbar,.ep,.toast,.floating{display:none!important;}}
+  @media print{.topbar,.ep,.toast,.floating,.hp,.block-bar{display:none!important;}}
+
+  /* ===== 모바일 미리보기 ===== */
+  body.mobile-preview{background:#2a2d35;}
+  body.mobile-preview #app{
+    max-width:390px;margin:16px auto 40px;
+    box-shadow:0 0 0 10px #1a1d24,0 0 0 11px #333,0 30px 80px rgba(0,0,0,.5);
+    border-radius:36px;overflow:hidden;}
+  body.mobile-preview .floating{right:calc(50% - 183px);}
+  .tb-btn.mobile-on{background:#4a90d9;border-color:#4a90d9;}
+
+  /* ===== Undo/Redo 툴바 버튼 ===== */
+  .tb-undo,.tb-redo{opacity:.45;pointer-events:none;}
+  .tb-undo.on,.tb-redo.on{opacity:1;pointer-events:auto;}
+
+  /* ===== 팔레트 프리셋 ===== */
+  .palette-list{display:flex;flex-direction:column;gap:6px;margin-top:8px;}
+  .palette-item{display:flex;align-items:center;gap:8px;background:#1e2329;
+    border:1px solid #2e3545;border-radius:9px;padding:8px 10px;cursor:pointer;transition:border-color .15s;}
+  .palette-item:hover{border-color:var(--primary);}
+  .palette-swatches{display:flex;gap:3px;flex-shrink:0;}
+  .palette-swatch{width:14px;height:14px;border-radius:50%;border:1px solid rgba(255,255,255,.15);}
+  .palette-name{flex:1;font-size:12px;color:#bbb;}
+  .palette-del{flex:none;background:none;border:none;color:#555;font-size:14px;cursor:pointer;padding:0 2px;}
+  .palette-del:hover{color:#c05050;}
+  .ep-palette-save{width:100%;padding:8px;background:transparent;border:1px solid #353c48;
+    border-radius:8px;color:#7ab8e8;font-size:12px;font-weight:700;cursor:pointer;margin-top:6px;}
+  .ep-palette-save:hover{background:#1e2a38;}
 </style>
 </head>
 <body class="mode-design">
@@ -353,6 +380,9 @@
       <button data-mode="plan">기획 문서</button>
       <button data-mode="spec">제작 스펙</button>
     </div>
+    <button class="tb-btn tb-undo" id="undoBtn" title="실행 취소 (Ctrl+Z)">↩</button>
+    <button class="tb-btn tb-redo" id="redoBtn" title="다시 실행 (Ctrl+Y)">↪</button>
+    <button class="tb-btn" id="mobileToggle" title="모바일 미리보기">📱</button>
     <button class="tb-btn" id="histToggle">🕐 히스토리</button>
     <button class="tb-btn" onclick="window.print()">인쇄·PDF</button>
     <button class="tb-btn" id="editToggle">✏️ 편집</button>
@@ -390,8 +420,14 @@
         <div class="ep-color-row"><input type="color" id="cp-band2"><input type="text" id="ct-band2"></div></div>
     </div>
     <div class="ep-group">
+      <div class="ep-group-label">팔레트 프리셋</div>
+      <div class="palette-list" id="paletteList"></div>
+      <button class="ep-palette-save" id="paletteSaveBtn">+ 현재 컬러 프리셋으로 저장</button>
+    </div>
+    <div class="ep-group">
       <div class="ep-group-label">저장 · 내보내기</div>
       <button class="ep-export-btn" id="exportBtn">↓ campaign JS 다운로드</button>
+      <button class="ep-export-btn" id="exportHtmlBtn" style="margin-top:6px;background:#3a5a8a;">↓ 공유용 HTML 다운로드</button>
       <div class="ep-note" id="epNote">변경사항은 브라우저에 자동 저장됩니다</div>
     </div>
   </div>
@@ -1175,47 +1211,4 @@
       draft.theme[f.id] = v;
       markDirty();
     }
-    if(cp) cp.addEventListener('input', function(){ if(ct) ct.value=cp.value; apply(cp.value); });
-    if(ct) ct.addEventListener('change', function(){ var v=ct.value.trim(); if(cp) cp.value=v; apply(v); });
-  });
-
-  /* ============================================================
-     10. 에디터 패널 — 콘텐츠 탭
-     ============================================================ */
-  function buildEpContent(){
-    var el = document.getElementById('epContent');
-    if(!el) return;
-    var d = draft, html = '';
-
-    function row(label, key, multi){
-      var v = esc(getVal(key)||'');
-      if(multi) return '<div class="ep-row"><label>'+label+'</label><textarea data-epkey="'+key+'">'+v+'</textarea></div>';
-      return '<div class="ep-row"><label>'+label+'</label><input type="text" data-epkey="'+key+'" value="'+v+'"></div>';
-    }
-
-    html += '<div class="ep-group"><div class="ep-group-label">히어로</div>'
-      + row('기관명', 'hero.org')
-      + row('헤드라인', 'hero.title', true)
-      + row('서브 카피', 'hero.sub', true)
-      + '</div>';
-
-    (d.missions||[]).forEach(function(m, i){
-      html += '<div class="ep-group"><div class="ep-group-label">미션 '+(i+1)+' ('+m.type+')</div>';
-      if(m.title!==undefined)    html += row('제목', 'missions.'+i+'.title', true);
-      if(m.sub!==undefined)      html += row('서브', 'missions.'+i+'.sub', true);
-      if(m.head!==undefined)     html += row('헤드', 'missions.'+i+'.head', true);
-      if(m.section!==undefined)  html += row('섹션 제목', 'missions.'+i+'.section', true);
-      if(m.question!==undefined) html += row('질문', 'missions.'+i+'.question', true);
-      if(m.cta!==undefined)      html += row('CTA 버튼', 'missions.'+i+'.cta');
-      if(m.bean!==undefined)     html += row('콩 텍스트', 'missions.'+i+'.bean');
-      html += '</div>';
-    });
-
-    if(d.sns){
-      html += '<div class="ep-group"><div class="ep-group-label">SNS 밴드</div>'
-        + row('카피', 'sns.copy') + '</div>';
-    }
-    if(d.donation){
-      html += '<div class="ep-group"><div class="ep-group-label">기부금 안내</div>'
-        + row('리드 문구', 'donation.lead')
-        + row('금액', 'donation.amount')
+    if(cp) cp.addEventListener('
