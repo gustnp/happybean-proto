@@ -337,6 +337,9 @@
   .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
   .toast.bean{background:var(--accent);}
 
+  .ep-new-campaign{width:100%;padding:9px;background:transparent;border:1px solid #2a4a2a;
+    border-radius:8px;color:#4caf72;font-size:12px;font-weight:700;cursor:pointer;margin-top:4px;}
+  .ep-new-campaign:hover{background:#1b2b1b;}
   @keyframes fadeIn{from{opacity:0;transform:translateY(-6px);}to{opacity:1;transform:none;}}
 
   @media (max-width:760px){
@@ -405,6 +408,7 @@
     <button data-tab="design" class="on">디자인</button>
     <button data-tab="content">콘텐츠</button>
     <button data-tab="sections">섹션</button>
+    <button data-tab="plan">기획·스펙</button>
   </div>
   <div class="ep-body" id="epDesign">
     <div class="ep-group">
@@ -432,10 +436,32 @@
       <button class="ep-export-btn" id="exportBtn">↓ campaign JS 다운로드</button>
       <button class="ep-export-btn" id="exportHtmlBtn" style="margin-top:6px;background:#3a5a8a;">↓ 공유용 HTML 다운로드</button>
       <div class="ep-note" id="epNote">변경사항은 브라우저에 자동 저장됩니다</div>
+      <button class="ep-new-campaign" id="newCampaignBtn">+ 새 캠페인 시작</button>
     </div>
   </div>
   <div class="ep-body hidden" id="epContent"></div>
   <div class="ep-body hidden" id="epSections"></div>
+  <div class="ep-body hidden" id="epPlan"></div>
+
+<!-- 새 캠페인 모달 -->
+<div id="newCampaignModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:400;align-items:center;justify-content:center;">
+  <div style="background:#1a1d21;border-radius:16px;width:min(420px,94vw);padding:28px;box-shadow:0 20px 60px rgba(0,0,0,.7);">
+    <h3 style="margin:0 0 6px;color:#fff;font-size:15px;">새 캠페인 시작</h3>
+    <p style="margin:0 0 18px;color:#6a7280;font-size:12.5px;">템플릿 기반으로 새 시안을 시작합니다. 완성 후 JS 내보내기로 저장하세요.</p>
+    <div style="margin-bottom:12px;">
+      <label style="display:block;font-size:11.5px;color:#999;margin-bottom:4px;">캠페인 ID (영문·숫자, 파일명이 됩니다)</label>
+      <input id="ncId" type="text" placeholder="예: happynew2026" style="width:100%;background:#212630;border:1px solid #353c48;border-radius:7px;padding:8px 10px;color:#dde1e8;font-size:13px;font-family:inherit;outline:none;">
+    </div>
+    <div style="margin-bottom:20px;">
+      <label style="display:block;font-size:11.5px;color:#999;margin-bottom:4px;">캠페인 이름</label>
+      <input id="ncName" type="text" placeholder="예: 행복한콩 2026 캠페인" style="width:100%;background:#212630;border:1px solid #353c48;border-radius:7px;padding:8px 10px;color:#dde1e8;font-size:13px;font-family:inherit;outline:none;">
+    </div>
+    <div style="display:flex;gap:8px;">
+      <button id="ncConfirm" style="flex:1;background:#16c265;border:none;border-radius:9px;color:#fff;font-size:13px;font-weight:700;padding:11px;cursor:pointer;">시작하기</button>
+      <button id="ncCancel" style="flex:none;background:#2a2e36;border:none;border-radius:9px;color:#aaa;font-size:13px;padding:11px 18px;cursor:pointer;">취소</button>
+    </div>
+  </div>
+</div>
 </div>
 
 <!-- 컴포넌트 피커 모달 -->
@@ -825,6 +851,7 @@
     applyEditMode();
     buildEpContent();
     buildEpSections();
+    buildEpPlan();
 
     // 숨겨진 섹션 재적용
     Object.keys(_hidden).forEach(function(k){
@@ -1065,7 +1092,9 @@
       document.getElementById('epDesign').classList.toggle('hidden',   t!=='design');
       document.getElementById('epContent').classList.toggle('hidden',  t!=='content');
       document.getElementById('epSections').classList.toggle('hidden', t!=='sections');
+      document.getElementById('epPlan').classList.toggle('hidden',     t!=='plan');
       if(t==='design') renderPaletteList();
+      if(t==='plan') buildEpPlan();
     });
   });
 
@@ -1126,6 +1155,17 @@
       if(m.head!==undefined)     html += row('헤드','missions.'+i+'.head',true);
       if(m.section!==undefined)  html += row('섹션 제목','missions.'+i+'.section',true);
       if(m.question!==undefined) html += row('질문','missions.'+i+'.question',true);
+      // 퀴즈 보기 항목 편집
+      if(m.type==='quiz' && m.answers){
+        (m.answers).forEach(function(a, ai){
+          var isCorrect = String(a.note||'').indexOf('정답')>-1;
+          html += '<div class="ep-row"><label>보기 '+(ai+1)+(isCorrect?' ✅':'')+'</label>'
+            +'<div style="display:flex;gap:6px;align-items:flex-start;">'
+            +'<textarea data-epkey="missions.'+i+'.answers.'+ai+'.t" style="flex:1;">'+esc(a.t||'')+'</textarea>'
+            +'<button data-toggle-correct="'+i+'-'+ai+'" title="정답으로 설정" style="flex:none;background:'+(isCorrect?'#16c265':'#2a3040')+';border:none;border-radius:6px;color:#fff;font-size:11px;padding:6px 7px;cursor:pointer;margin-top:1px;">정답</button>'
+            +'</div></div>';
+        });
+      }
       if(m.cta!==undefined)      html += row('CTA 버튼','missions.'+i+'.cta');
       if(m.bean!==undefined)     html += row('콩 텍스트','missions.'+i+'.bean');
       html += '</div>';
@@ -1142,6 +1182,26 @@
         var domEl = document.querySelector('[data-key="'+key+'"]');
         if(domEl && document.activeElement !== domEl) domEl.innerText = inp.value;
         markDirty();
+      });
+    });
+    // 퀴즈 정답 토글
+    el.querySelectorAll('[data-toggle-correct]').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        var parts = btn.dataset.toggleCorrect.split('-');
+        var mi = +parts[0], ai = +parts[1];
+        var answers = draft.missions[mi].answers;
+        answers.forEach(function(a, idx){
+          a.note = (idx===ai) ? '정답' : '';
+        });
+        markDirty(); save(); render(); buildEpContent();
+        var tabs = document.querySelectorAll('.ep-tabs button');
+        tabs.forEach(function(b){ b.classList.remove('on'); });
+        document.querySelectorAll('.ep-tabs button[data-tab="content"]')[0].classList.add('on');
+        document.getElementById('epContent').classList.remove('hidden');
+        document.getElementById('epDesign').classList.add('hidden');
+        document.getElementById('epSections').classList.add('hidden');
+        document.getElementById('epPlan').classList.add('hidden');
+        toast('정답 설정됨');
       });
     });
   }
@@ -1453,10 +1513,137 @@
   /* =========================================================
      22. 초기 렌더
   ========================================================= */
+  /* =========================================================
+     새 캠페인 모달
+  ========================================================= */
+  document.getElementById('newCampaignBtn').addEventListener('click', function(){
+    var m = document.getElementById('newCampaignModal');
+    m.style.display = 'flex';
+    document.getElementById('ncId').focus();
+  });
+  document.getElementById('ncCancel').addEventListener('click', function(){
+    document.getElementById('newCampaignModal').style.display = 'none';
+  });
+  document.getElementById('ncConfirm').addEventListener('click', function(){
+    var newId = document.getElementById('ncId').value.trim().replace(/[^a-zA-Z0-9_-]/g,'');
+    var newName = document.getElementById('ncName').value.trim() || '새 캠페인';
+    if(!newId){ toast('캠페인 ID를 입력해주세요'); return; }
+    recordUndo();
+    // 템플릿 기반 새 draft 생성
+    draft = {
+      meta:{id:newId,name:newName,client:'클라이언트명',pm:'해피빈 담당자',
+        status:'시안 v1',period:'2026.00.00 ~ 2026.00.00',beanDate:'',goal:'',kpi:''},
+      theme:{primary:'#2f7fd4',accent:'#16c265',heroFrom:'#cfe7fb',heroTo:'#eef7e9',
+        band1:'#eaf4fd',band2:'#eaf7ef',mood:''},
+      floating:{type:'counter',label:'캠페인 참여 수',value:'0',unit:'건'},
+      hero:{org:'주최 기관명',title:'캠페인 헤드라인을
+입력하세요',sub:'서브 카피를 입력하세요.',
+        image:null,imageNote:'히어로 이미지 (권장 960×540px)',plan:'',spec:{assets:[],interaction:'',note:''}},
+      missions:[{type:'story',band:'band1',bean:'미션 완료 시 콩 1개',
+        title:'미션 제목',sub:'미션 설명을 입력하세요.',image:null,imageNote:'미션 이미지',
+        cta:'참여하기',plan:'',spec:{assets:[],interaction:'',note:''}}],
+      sns:{copy:'SNS 채널을 팔로우하세요',channels:['홈페이지','인스타그램'],plan:'',spec:{assets:[],interaction:'',note:''}},
+      donation:{lead:'여러분의 참여로',amount:'최대 0원',desc:'이 기부됩니다.',cta:'매칭기부 자세히 보기',plan:'',spec:{assets:[],interaction:'',note:''}},
+      share:{copy:'이 캠페인을 공유해주세요',channels:['카카오톡','페이스북'],plan:'',spec:{assets:[],interaction:'',note:''}},
+      comments:{title:'댓글로 참여해주세요',guide:'댓글에 참여해 주신 모든 분들께 콩 1개를 드립니다.',
+        period:'참여기간 : 2026년 00월 00일 ~ 2026년 00월 00일',beanDate:'',
+        disclaimer:'무성의, 반복, 악성댓글에는 콩이 지급되지 않습니다.',sideNote:'',plan:'',spec:{assets:[],interaction:'',note:''}}
+    };
+    var newKey = 'hb_draft_v2_' + newId;
+    localStorage.setItem(newKey, JSON.stringify(draft));
+    document.getElementById('newCampaignModal').style.display = 'none';
+    document.getElementById('ncId').value = '';
+    document.getElementById('ncName').value = '';
+    applyTheme(draft.theme);
+    document.title = newName + ' · 해피빈 프로토타입';
+    render(); buildEpContent(); buildEpSections(); buildEpPlan();
+    syncColorPickers(); renderPaletteList();
+    toast('새 캠페인 시작! 편집 후 JS 내보내기로 저장하세요.');
+  });
+  document.getElementById('newCampaignModal').addEventListener('click', function(e){
+    if(e.target === document.getElementById('newCampaignModal'))
+      document.getElementById('newCampaignModal').style.display = 'none';
+  });
+  document.getElementById('ncId').addEventListener('keydown', function(e){
+    if(e.key==='Enter') document.getElementById('ncConfirm').click();
+  });
+
+  /* =========================================================
+     기획·스펙 탭 (buildEpPlan)
+  ========================================================= */
+  function buildEpPlan(){
+    var el = document.getElementById('epPlan');
+    if(!el) return;
+    var d = draft, html = '';
+
+    function planRow(label, key){
+      var v = esc(getVal(key)||'');
+      return '<div class="ep-row"><label>'+label+'</label>'
+        +'<textarea data-epkey="'+key+'" style="min-height:72px;">'+v+'</textarea></div>';
+    }
+    function assetsRow(key, arr){
+      var v = (arr||[]).join('
+');
+      return '<div class="ep-row"><label>필요 에셋 (줄바꿈으로 구분)</label>'
+        +'<textarea data-plan-assets="'+key+'" style="min-height:58px;">'+esc(v)+'</textarea></div>';
+    }
+
+    // 히어로
+    html += '<div class="ep-group"><div class="ep-group-label">히어로 — 기획·스펙</div>'
+      + planRow('기획 의도','hero.plan')
+      + assetsRow('hero', d.hero.spec && d.hero.spec.assets)
+      + planRow('인터랙션 정의','hero.spec.interaction')
+      + planRow('비고','hero.spec.note')
+      +'</div>';
+
+    // 미션들
+    (d.missions||[]).forEach(function(m,i){
+      html += '<div class="ep-group"><div class="ep-group-label">미션 '+(i+1)+' ('+m.type+') — 기획·스펙</div>'
+        + planRow('기획 의도','missions.'+i+'.plan')
+        + assetsRow('missions.'+i, m.spec && m.spec.assets)
+        + planRow('인터랙션 정의','missions.'+i+'.spec.interaction')
+        + planRow('비고','missions.'+i+'.spec.note')
+        +'</div>';
+    });
+
+    // 기타 섹션
+    var others = [];
+    if(d.sns)      others.push({label:'SNS 밴드', base:'sns'});
+    if(d.donation) others.push({label:'기부금 안내', base:'donation'});
+    if(d.share)    others.push({label:'공유 밴드', base:'share'});
+    if(d.comments) others.push({label:'댓글 참여', base:'comments'});
+    others.forEach(function(o){
+      html += '<div class="ep-group"><div class="ep-group-label">'+o.label+' — 기획</div>'
+        + planRow('기획 의도', o.base+'.plan')
+        +'</div>';
+    });
+
+    el.innerHTML = html;
+
+    // data-epkey 바인딩 (plan/spec 텍스트)
+    el.querySelectorAll('[data-epkey]').forEach(function(inp){
+      inp.addEventListener('input', function(){
+        setVal(inp.dataset.epkey, inp.value);
+        markDirty();
+      });
+    });
+    // data-plan-assets 바인딩 (에셋 배열)
+    el.querySelectorAll('[data-plan-assets]').forEach(function(ta){
+      ta.addEventListener('input', function(){
+        var key = ta.dataset.planAssets;
+        var arr = ta.value.split('
+').map(function(s){ return s.trim(); }).filter(Boolean);
+        setVal(key+'.spec.assets', arr);
+        markDirty();
+      });
+    });
+  }
+
   render();
   _undoReady = true;
   renderPaletteList();
   updateUndoUI();
+  buildEpPlan();
 
 })();
 </script>
