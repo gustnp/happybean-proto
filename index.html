@@ -656,6 +656,7 @@ window.CAMPAIGNS["kookmincall110"] = {
 })();
 </script>
 <script>
+try{
 (function(){
   /* =========================================================
      0. 초기화
@@ -1298,6 +1299,62 @@ window.CAMPAIGNS["kookmincall110"] = {
     });
   }
 
+  /* 팔레트 저장/불러오기 */
+  var PALETTE_KEY = 'hb_palettes_v1';
+  function loadPalettes(){ try{ return JSON.parse(localStorage.getItem(PALETTE_KEY)||'[]'); }catch(e){ return []; } }
+  function savePalettes(arr){ localStorage.setItem(PALETTE_KEY, JSON.stringify(arr)); }
+
+  function renderPaletteList(){
+    var el = document.getElementById('paletteList');
+    if(!el) return;
+    var list = loadPalettes();
+    if(!list.length){ el.innerHTML='<div style="font-size:12px;color:#666;padding:4px 0;">저장된 팔레트가 없습니다</div>'; return; }
+    el.innerHTML = list.map(function(p,i){
+      var swatches = [p.primary,p.secondary,p.accent,p.bg].filter(Boolean).map(function(c){
+        return '<span class="palette-swatch" style="background:'+c+'"></span>';
+      }).join('');
+      return '<div class="palette-item" data-pi="'+i+'" style="cursor:pointer;">'
+        +'<span class="palette-swatches">'+swatches+'</span>'
+        +'<span class="palette-name">'+esc(p.name||('팔레트 '+(i+1)))+'</span>'
+        +'<button class="palette-del" data-del="'+i+'" title="삭제">✕</button>'
+        +'</div>';
+    }).join('');
+    el.querySelectorAll('[data-pi]').forEach(function(item){
+      item.addEventListener('click', function(e){
+        if(e.target.dataset.del !== undefined) return;
+        var p = loadPalettes()[+item.dataset.pi];
+        if(!p) return;
+        if(p.primary)   { draft.theme.primary=p.primary; }
+        if(p.secondary) { draft.theme.secondary=p.secondary; }
+        if(p.accent)    { draft.theme.accent=p.accent; }
+        if(p.bg)        { draft.theme.bg=p.bg; }
+        markDirty(); render(); syncColorPickers();
+      });
+    });
+    el.querySelectorAll('[data-del]').forEach(function(btn){
+      btn.addEventListener('click', function(e){
+        e.stopPropagation();
+        var list2 = loadPalettes();
+        list2.splice(+btn.dataset.del, 1);
+        savePalettes(list2);
+        renderPaletteList();
+      });
+    });
+  }
+
+  // 팔레트 저장 버튼
+  var _pSaveBtn = document.getElementById('paletteSaveBtn');
+  if(_pSaveBtn) _pSaveBtn.addEventListener('click', function(){
+    var name = prompt('팔레트 이름을 입력하세요', '팔레트 '+(loadPalettes().length+1));
+    if(name===null) return;
+    var list = loadPalettes();
+    list.push({name:name, primary:draft.theme.primary, secondary:draft.theme.secondary,
+               accent:draft.theme.accent, bg:draft.theme.bg});
+    savePalettes(list);
+    renderPaletteList();
+  });
+
+
   /* =========================================================
      11. 에디터 패널 — 콘텐츠 탭
   ========================================================= */
@@ -1701,8 +1758,7 @@ window.CAMPAIGNS["kookmincall110"] = {
       theme:{primary:'#2f7fd4',accent:'#16c265',heroFrom:'#cfe7fb',heroTo:'#eef7e9',
         band1:'#eaf4fd',band2:'#eaf7ef',mood:''},
       floating:{type:'counter',label:'캠페인 참여 수',value:'0',unit:'건'},
-      hero:{org:'주최 기관명',title:'캠페인 헤드라인을
-입력하세요',sub:'서브 카피를 입력하세요.',
+      hero:{org:'주최 기관명',title:'캠페인 헤드라인을\n입력하세요',sub:'서브 카피를 입력하세요.',
         image:null,imageNote:'히어로 이미지 (권장 960×540px)',plan:'',spec:{assets:[],interaction:'',note:''}},
       missions:[{type:'story',band:'band1',bean:'미션 완료 시 콩 1개',
         title:'미션 제목',sub:'미션 설명을 입력하세요.',image:null,imageNote:'미션 이미지',
@@ -1747,8 +1803,7 @@ window.CAMPAIGNS["kookmincall110"] = {
         +'<textarea data-epkey="'+key+'" style="min-height:72px;">'+v+'</textarea></div>';
     }
     function assetsRow(key, arr){
-      var v = (arr||[]).join('
-');
+      var v = (arr||[]).join('\n');
       return '<div class="ep-row"><label>필요 에셋 (줄바꿈으로 구분)</label>'
         +'<textarea data-plan-assets="'+key+'" style="min-height:58px;">'+esc(v)+'</textarea></div>';
     }
@@ -1796,8 +1851,7 @@ window.CAMPAIGNS["kookmincall110"] = {
     el.querySelectorAll('[data-plan-assets]').forEach(function(ta){
       ta.addEventListener('input', function(){
         var key = ta.dataset.planAssets;
-        var arr = ta.value.split('
-').map(function(s){ return s.trim(); }).filter(Boolean);
+        var arr = ta.value.split('\n').map(function(s){ return s.trim(); }).filter(Boolean);
         setVal(key+'.spec.assets', arr);
         markDirty();
       });
@@ -1811,6 +1865,10 @@ window.CAMPAIGNS["kookmincall110"] = {
   buildEpPlan();
 
 })();
+}catch(e){
+  document.getElementById("app").innerHTML='<div style="padding:40px;background:#fff3f3;border:2px solid #f00;border-radius:12px;margin:20px;font-family:monospace;font-size:13px;"><b>JS ERROR:</b><br>'+e.message+'<br><br><pre>'+e.stack+'</pre></div>';
+  console.error(e);
+}
 </script>
 </body>
 </html>
