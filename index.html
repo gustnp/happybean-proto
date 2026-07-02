@@ -276,6 +276,61 @@
     border:none;border-radius:8px;padding:3px 8px;cursor:pointer;margin-left:6px;}
   .ep-sec-swap:hover{background:rgba(47,127,212,.25);}
 
+  /* ===== 히스토리 패널 ===== */
+  .hp{position:fixed;top:0;left:0;height:100vh;width:320px;background:#13161a;color:#e0e2e6;
+    z-index:70;display:flex;flex-direction:column;
+    transform:translateX(-100%);transition:transform .25s cubic-bezier(.4,0,.2,1);
+    box-shadow:6px 0 28px rgba(0,0,0,.5);}
+  .hp.open{transform:translateX(0);}
+  .hp-header{display:flex;align-items:center;justify-content:space-between;
+    padding:13px 16px;background:#0e1114;border-bottom:1px solid #2e3238;flex-shrink:0;}
+  .hp-header h3{margin:0;font-size:13px;font-weight:700;color:#fff;}
+  .hp-close{background:none;border:none;color:#777;font-size:20px;cursor:pointer;line-height:1;padding:0 4px;}
+  .hp-close:hover{color:#fff;}
+  .hp-save-row{padding:11px 14px;border-bottom:1px solid #2e3238;display:flex;gap:8px;flex-shrink:0;}
+  .hp-name-input{flex:1;background:#1e2329;border:1px solid #353c48;border-radius:8px;
+    padding:7px 10px;color:#dde1e8;font-size:12.5px;font-family:inherit;outline:none;}
+  .hp-name-input:focus{border-color:var(--accent);}
+  .hp-save-btn{flex:none;background:var(--accent);border:none;border-radius:8px;
+    color:#fff;font-size:12.5px;font-weight:700;padding:0 14px;cursor:pointer;}
+  .hp-save-btn:active{opacity:.8;}
+  .hp-list{flex:1;overflow-y:auto;padding:10px 14px;}
+  .hp-empty{text-align:center;color:#555;font-size:13px;padding:30px 10px;line-height:1.8;}
+  .hp-item{background:#1a1f27;border:1px solid #2a3040;border-radius:11px;
+    padding:14px;margin-bottom:10px;transition:border-color .15s;}
+  .hp-item:hover{border-color:#3a4558;}
+  .hp-item.hp-orig{border-color:#3a3020;}
+  .hp-item-name{font-size:13px;font-weight:700;color:#fff;display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+  .hp-orig-badge{font-size:10px;background:#8a6530;color:#ffe7b0;padding:2px 7px;border-radius:8px;}
+  .hp-item-ts{font-size:11px;color:#555;margin-top:4px;}
+  .hp-item-meta{font-size:11.5px;color:#6a7280;margin-top:5px;}
+  .hp-item-acts{display:flex;gap:6px;margin-top:10px;}
+  .hp-restore{flex:1;background:rgba(47,127,212,.18);border:1px solid rgba(47,127,212,.35);
+    color:#7ab8e8;font-size:12px;font-weight:700;border-radius:8px;padding:6px;cursor:pointer;}
+  .hp-restore:hover{background:rgba(47,127,212,.3);}
+  .hp-preview{flex:none;background:transparent;border:1px solid #353c48;color:#8a95a3;
+    font-size:12px;border-radius:8px;padding:6px 10px;cursor:pointer;}
+  .hp-preview:hover{background:#252e3a;color:#dde1e8;}
+  .hp-del{flex:none;background:transparent;border:1px solid #3a4048;color:#6a7280;
+    font-size:12px;border-radius:8px;padding:6px 10px;cursor:pointer;}
+  .hp-del:hover{background:#2a1a1a;color:#c05050;border-color:#5a2a2a;}
+  .hp-footer{padding:10px 14px;border-top:1px solid #2e3238;font-size:11px;color:#444;flex-shrink:0;text-align:center;}
+
+  /* 미리보기 오버레이 */
+  .hp-preview-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:350;
+    display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:20px;}
+  .hp-preview-overlay.hidden{display:none;}
+  .hp-preview-bar{background:#1a1d21;border-radius:12px;padding:10px 18px;margin-bottom:14px;
+    display:flex;align-items:center;gap:14px;box-shadow:0 4px 20px rgba(0,0,0,.5);}
+  .hp-preview-bar span{color:#fff;font-size:13px;font-weight:700;}
+  .hp-preview-act{background:var(--accent);border:none;color:#fff;font-size:12.5px;font-weight:700;
+    border-radius:8px;padding:7px 16px;cursor:pointer;}
+  .hp-preview-act:hover{opacity:.85;}
+  .hp-preview-cancel{background:#2e3238;border:none;color:#aaa;font-size:12.5px;
+    border-radius:8px;padding:7px 14px;cursor:pointer;}
+  .hp-preview-frame{background:#fff;border-radius:12px;width:100%;max-width:960px;
+    flex:1;overflow:auto;box-shadow:0 8px 40px rgba(0,0,0,.6);}
+
   @media (max-width:760px){
     .cards-3{grid-template-columns:1fr;}
     .gnb-inner{gap:12px;}
@@ -298,6 +353,7 @@
       <button data-mode="plan">기획 문서</button>
       <button data-mode="spec">제작 스펙</button>
     </div>
+    <button class="tb-btn" id="histToggle">🕐 히스토리</button>
     <button class="tb-btn" onclick="window.print()">인쇄·PDF</button>
     <button class="tb-btn" id="editToggle">✏️ 편집</button>
     <span class="save-dot" id="saveDot" title="저장 중..."></span>
@@ -345,6 +401,30 @@
 
   <!-- 섹션 탭 -->
   <div class="ep-body hidden" id="epSections"></div>
+</div>
+
+<!-- 히스토리 패널 -->
+<div class="hp" id="histPanel">
+  <div class="hp-header">
+    <h3>🕐 버전 히스토리</h3>
+    <button class="hp-close" id="hpClose">✕</button>
+  </div>
+  <div class="hp-save-row">
+    <input class="hp-name-input" id="hpNameInput" placeholder="버전 이름 (예: v2 색상 수정)">
+    <button class="hp-save-btn" id="hpSaveBtn">저장</button>
+  </div>
+  <div class="hp-list" id="hpList"></div>
+  <div class="hp-footer" id="hpFooter"></div>
+</div>
+
+<!-- 히스토리 미리보기 오버레이 -->
+<div class="hp-preview-overlay hidden" id="hpPreviewOverlay">
+  <div class="hp-preview-bar">
+    <span id="hpPreviewLabel">미리보기</span>
+    <button class="hp-preview-act" id="hpPreviewRestore">이 버전으로 복원</button>
+    <button class="hp-preview-cancel" id="hpPreviewClose">닫기</button>
+  </div>
+  <iframe class="hp-preview-frame" id="hpPreviewFrame" sandbox="allow-scripts allow-same-origin"></iframe>
 </div>
 
 <!-- 컴포넌트 피커 모달 -->
@@ -1139,118 +1219,3 @@
       html += '<div class="ep-group"><div class="ep-group-label">기부금 안내</div>'
         + row('리드 문구', 'donation.lead')
         + row('금액', 'donation.amount')
-        + row('설명', 'donation.desc', true)
-        + row('CTA', 'donation.cta')
-        + '</div>';
-    }
-    if(d.share){
-      html += '<div class="ep-group"><div class="ep-group-label">공유 밴드</div>'
-        + row('카피', 'share.copy') + '</div>';
-    }
-    if(d.comments){
-      html += '<div class="ep-group"><div class="ep-group-label">댓글 참여</div>'
-        + row('제목', 'comments.title', true)
-        + row('안내 문구', 'comments.guide', true)
-        + '</div>';
-    }
-
-    el.innerHTML = html;
-
-    el.querySelectorAll('[data-epkey]').forEach(function(inp){
-      inp.addEventListener('input', function(){
-        var key = inp.dataset.epkey;
-        var val = inp.value;
-        setVal(key, val);
-        // DOM 즉시 반영
-        var domEl = document.querySelector('[data-key="'+key+'"]');
-        if(domEl && document.activeElement !== domEl) domEl.innerText = val;
-        markDirty();
-      });
-    });
-  }
-
-  /* ============================================================
-     11. 에디터 패널 — 섹션 탭
-     ============================================================ */
-  function buildEpSections(){
-    var el = document.getElementById('epSections');
-    if(!el) return;
-
-    var html = '<div class="ep-group"><div class="ep-group-label">미션 블록 (교체 가능)</div>';
-    (draft.missions||[]).forEach(function(m, i){
-      var typeInfo = MISSION_TYPES.filter(function(t){return t.type===m.type;})[0] || MISSION_TYPES[6];
-      var on = !_hidden['missions.'+i];
-      html += '<div class="ep-toggle-row">'
-        +'<span>'+typeInfo.ico+' 미션 '+(i+1)
-        +'<button class="ep-sec-swap" data-epswap="'+i+'">⇄ 교체</button></span>'
-        +'<label class="ep-toggle"><input type="checkbox" data-seckey="missions.'+i+'"'+(on?' checked':'')+'>'
-        +'<span class="ep-slider"></span></label></div>';
-    });
-    html += '<button class="ep-add-block" id="epAddBlock">+ 블록 추가</button></div>';
-
-    html += '<div class="ep-group"><div class="ep-group-label">고정 블록 표시 여부</div>';
-    var fixedSecs = [{key:'hero',label:'히어로',fixed:true}];
-    if(draft.sns)      fixedSecs.push({key:'sns',      label:'SNS 밴드'});
-    if(draft.donation) fixedSecs.push({key:'donation', label:'기부금 안내'});
-    if(draft.share)    fixedSecs.push({key:'share',    label:'공유 밴드'});
-    if(draft.comments) fixedSecs.push({key:'comments', label:'댓글 참여'});
-    fixedSecs.forEach(function(s){
-      var on = !_hidden[s.key];
-      html += '<div class="ep-toggle-row">'
-        +'<span>'+s.label+(s.fixed?' <small style="color:#444;">(구조 고정)</small>':'')+'</span>'
-        +'<label class="ep-toggle"><input type="checkbox" data-seckey="'+s.key+'"'+(on?' checked':'')+(s.fixed?' disabled':'')+'>'
-        +'<span class="ep-slider"></span></label></div>';
-    });
-    html += '</div>';
-
-    el.innerHTML = html;
-
-    el.querySelectorAll('[data-seckey]').forEach(function(cb){
-      cb.addEventListener('change', function(){ toggleSection(cb.dataset.seckey, cb.checked); });
-    });
-    el.querySelectorAll('[data-epswap]').forEach(function(btn){
-      btn.addEventListener('click', function(e){
-        e.stopPropagation();
-        showCompPicker(+btn.dataset.epswap);
-      });
-    });
-    var addBtn = document.getElementById('epAddBlock');
-    if(addBtn) addBtn.addEventListener('click', function(){ addMission(); });
-  }
-
-  /* ============================================================
-     12. Export
-     ============================================================ */
-  document.getElementById('exportBtn').addEventListener('click', function(){
-    var js = '/* 내보내기: '+new Date().toLocaleString('ko-KR')+' */\n'
-      +'window.CAMPAIGNS = window.CAMPAIGNS || {};\n'
-      +'window.CAMPAIGNS["'+draft.meta.id+'"] = '
-      +JSON.stringify(draft, null, 2)+';\n';
-    var blob = new Blob([js], {type:'text/javascript'});
-    var a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = draft.meta.id+'.js';
-    a.click();
-    toast('✅ '+draft.meta.id+'.js 다운로드됨!');
-  });
-
-  /* ============================================================
-     13. 모드 토글
-     ============================================================ */
-  document.querySelectorAll('.seg button').forEach(function(b){
-    b.addEventListener('click', function(){
-      document.querySelectorAll('.seg button').forEach(function(x){ x.classList.remove('on'); });
-      b.classList.add('on');
-      document.body.className = 'mode-'+b.dataset.mode+(editOpen?' edit-open':'');
-    });
-  });
-
-  /* ============================================================
-     14. 초기 렌더
-     ============================================================ */
-  render();
-
-})();
-</script>
-</body>
-</html>
