@@ -156,7 +156,7 @@
   .tb-btn{background:#33373c;border:1px solid #4a4f55;color:#fff;padding:7px 13px;border-radius:20px;
     font-size:12.5px;cursor:pointer;transition:background .15s;}
   .tb-btn.active{background:var(--accent);border-color:var(--accent);}
-  .tb-btn.mobile-on{background:#4a90d9;border-color:#4a90d9;}
+  
   .save-dot{width:7px;height:7px;border-radius:50%;background:#f1ff3d;display:inline-block;
     margin-left:4px;opacity:0;transition:opacity .3s;vertical-align:middle;}
   .save-dot.show{opacity:1;}
@@ -337,14 +337,6 @@
   .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
   .toast.bean{background:var(--accent);}
 
-  /* 모바일 미리보기 */
-  body.mobile-preview{background:#2a2d35;}
-  body.mobile-preview #app{
-    max-width:390px;margin:16px auto 40px;
-    box-shadow:0 0 0 10px #1a1d24,0 0 0 11px #333,0 30px 80px rgba(0,0,0,.5);
-    border-radius:36px;overflow:hidden;}
-  body.mobile-preview .floating{right:calc(50% - 183px);}
-
   @keyframes fadeIn{from{opacity:0;transform:translateY(-6px);}to{opacity:1;transform:none;}}
 
   @media (max-width:760px){
@@ -372,7 +364,6 @@
     </div>
     <button class="tb-btn tb-undo" id="undoBtn" title="실행 취소 (Ctrl+Z)">↩</button>
     <button class="tb-btn tb-redo" id="redoBtn" title="다시 실행 (Ctrl+Y)">↪</button>
-    <button class="tb-btn" id="mobileToggle" title="모바일 미리보기">📱</button>
     <button class="tb-btn" id="histToggle">🕐 히스토리</button>
     <button class="tb-btn" onclick="window.print()">인쇄·PDF</button>
     <button class="tb-btn" id="editToggle">✏️ 편집</button>
@@ -467,164 +458,17 @@
 <div id="app"></div>
 
 <script>
-/* =========================================================
- * 캠페인 데이터: 국민콜 110 (국민권익위원회)
- * ---------------------------------------------------------
- * 이 파일 하나가 캠페인 하나의 "기획서 + 시안 + 제작 스펙"입니다.
- * 텍스트/이미지/미션 구성을 여기서만 수정하면 페이지에 반영됩니다.
- * ========================================================= */
-window.CAMPAIGNS = window.CAMPAIGNS || {};
-window.CAMPAIGNS["kookmincall110"] = {
-
-  /* ---------- 메타 (기획 문서 헤더) ---------- */
-  meta: {
-    id: "kookmincall110",
-    name: "국민콜 110 캠페인",
-    client: "국민권익위원회",
-    pm: "해피빈 CSR제휴팀",
-    status: "시안 v1",
-    period: "2026.06.08 ~ 2026.06.30",
-    beanDate: "콩 지급일: 2026.07.03",
-    goal: "국민콜 110 인지도 제고 및 이용 채널(전화·문자·카카오톡) 안내. 퀴즈·댓글 참여를 통한 콩 리워드 제공.",
-    kpi: "캠페인 참여 수 / 댓글 수 / 채널 바로가기 클릭"
-  },
-
-  /* ---------- 테마 (컬러·톤은 여기만 교체) ---------- */
-  theme: {
-    primary:  "#2f7fd4",   /* 캠페인 메인 컬러 (110 블루) */
-    accent:   "#16c265",   /* 보조 포인트 (해피빈 그린 CTA) */
-    heroFrom: "#cfe7fb",   /* 히어로 그라데이션 시작 */
-    heroTo:   "#eef7e9",   /* 히어로 그라데이션 끝 */
-    band1:    "#eaf4fd",   /* 보조 밴드 1 (하늘) */
-    band2:    "#eaf7ef",   /* 보조 밴드 2 (민트) */
-    mood:     "밝고 친근한 파스텔 · 공공기관 신뢰감 + 캐릭터 중심 일러스트"
-  },
-
-  /* ---------- 플로팅 위젯: counter | stamps ---------- */
-  floating: {
-    type: "counter",
-    label: "캠페인 참여 수",
-    value: "20,014",
-    unit: "건"
-  },
-
-  /* ---------- 히어로 ---------- */
-  hero: {
-    org: "국민권익위원회",
-    title: "생활 민원 상담, 궁금한 행정 상담도\n이제는 110 하나로",
-    sub: "'하나(1)부터 열(10)까지' 정부민원상담은 110 — 국민콜 110 통합 운영 슬로건 공모 선정작이에요!",
-    image: null,
-    imageNote: "키 비주얼: 110 캐릭터 + 한복 소녀, 말풍선(교통/환경/교육/문화·관광/행정/공정거래) 배치. 하늘·잔디 배경",
-    plan: "첫 화면에서 캠페인 주제(110 통합 상담)와 슬로건을 즉시 전달. 참여수 카운터로 사회적 증거 제시.",
-    spec: {
-      assets: ["키 비주얼 일러스트 1식 (PC 1920px 기준, 밴드 풀블리드)", "주최기관 로고 (국민권익위원회)", "카테고리 아이콘 6종 (말풍선용)"],
-      interaction: "스크롤 진입 시 페이드인(선택). 참여수는 실시간 API 연동.",
-      note: "타이틀 2행 고정. 모바일에서 3행까지 허용."
-    }
-  },
-
-  /* ---------- 미션 슬롯 (자유 영역) ----------
-   * type: "quiz" | "story" | "channels" | "video" | "cards" | "cta" | "custom"
-   * custom은 스펙 카드로 렌더링(인터랙션 서술 + 레퍼런스 + 에셋)
-   */
-  missions: [
-    {
-      type: "quiz",
-      band: "band1",
-      bean: "미션 완료 시 콩 1개",
-      section: "하나부터 열까지\n모두 국민콜 110에 물어보세요",
-      question: "다음 중 국민콜 110에서\n만날 수 있는 것은 무엇일까요?",
-      answers: [
-        { t: "자동 응답기의 스무고개,\nAI 상담원과의 답답한 대화", note: "오답 카드 — 취소선/흔들림 처리" },
-        { t: "어디로 문의하나요?\n담당기관 찾아 삼만리", note: "오답 카드" },
-        { t: "전문교육을 이수한 110상담사와\n직접 연결되는 상담", note: "정답 카드 — 강조 테두리" }
-      ],
-      cta: "모두 확인했어요! 콩 받기",
-      plan: "핵심 메시지(전문 상담사 직접 연결)를 퀴즈 형식으로 각인. 오답 카드가 기존 페인포인트(ARS·기관 뺑뺑이)를 유머로 소구.",
-      spec: {
-        assets: ["질문 말풍선 캐릭터 컷 1종", "답변 카드 아이콘 3종"],
-        interaction: "카드 클릭 시 정답/오답 리액션 → 전부 확인 후 CTA 활성화 → 클릭 시 콩 지급(1회/ID).",
-        note: "콩 지급 조건: 확인 완료 시 ID당 1개"
-      }
-    },
-    {
-      type: "story",
-      band: "none",
-      bean: "미션 완료 시 콩 1개",
-      title: "걱정말고 국민콜 110",
-      sub: "일상에서 만나는 다양한 고민 상황을 찾아 해결해 보세요",
-      image: null,
-      imageNote: "아이소메트릭 룸 일러스트: 층간소음·육아·정원관리 등 고민 상황 3장면. 클릭 스팟 3개",
-      cta: "모두 확인했어요! 콩 받기",
-      plan: "생활 속 110 활용 시나리오를 인터랙티브 탐색으로 체험. '내 일상 문제도 110으로'라는 전환 유도.",
-      spec: {
-        assets: ["아이소메트릭 일러스트 1식", "상황별 팝업 카피 3건", "클릭 스팟 마커"],
-        interaction: "장면 클릭 → 해결 팝업 노출 → 3개 모두 확인 시 CTA 활성화 → 콩 지급.",
-        note: "모바일에서는 가로 스와이프 카드로 대체 가능"
-      }
-    },
-    {
-      type: "channels",
-      band: "band1",
-      bean: null,
-      head: "365일 24시간,\n언제 어디서나 국민콜 110 하세요",
-      items: [
-        { badge: "전화상담이 편해요", title: "국번 없이 110", desc: "전국 어디서나 국번 없이 110", cta: null },
-        { badge: "문자가 편해요", title: "110으로 전송", desc: "문자 메시지 작성 후 110으로 전송", cta: null },
-        { badge: "카카오톡 채팅이 편해요", title: "국민톡110 채널 추가", desc: "국민톡110 채널을 추가하면 더 편리하게 상담할 수 있어요", cta: "카카오톡 채널 바로가기" }
-      ],
-      plan: "행동 전환 구간. 세대별 선호 채널(전화/문자/카톡)을 병렬 제시해 진입 장벽 제거.",
-      spec: {
-        assets: ["채널 아이콘 3종", "카드별 안내 이미지(폰 목업) 3종"],
-        interaction: "카카오톡 카드 CTA → 채널 추가 딥링크. 클릭 트래킹 필요.",
-        note: "카드 3개 고정. 모바일 1열 스택"
-      }
-    }
-  ],
-
-  /* ---------- SNS 밴드 ---------- */
-  sns: {
-    copy: "국민콜 110의 새로운 소식이 궁금하다면",
-    channels: ["홈페이지", "페이스북", "인스타그램"],
-    plan: "캠페인 종료 후에도 이어지는 접점 확보.",
-    spec: { assets: ["채널 아이콘 3종 + 링크 URL"], interaction: "새 탭 이동", note: "" }
-  },
-
-  /* ---------- 기부금 안내 ---------- */
-  donation: {
-    lead: "여러분의 참여로",
-    amount: "최대 6,600,000원",
-    desc: "이 기부됩니다. 소중한 기부금은 도움이 필요한 모금함에 전달됩니다.",
-    cta: "참여가 기부가 되는 매칭기부 누적 모금함 자세히 보기",
-    plan: "참여 = 기부라는 해피빈 핵심 가치 전달. 금액은 클라이언트 확정치 반영.",
-    spec: { assets: [], interaction: "CTA → 매칭기부 모금함 목록 페이지", note: "금액 강조 타이포는 공통 규격" }
-  },
-
-  /* ---------- 공유 밴드 ---------- */
-  share: {
-    copy: "국민콜 110 상담이 필요한 사람이 생각났다면 공유하기",
-    channels: ["카카오톡", "블로그", "밴드", "페이스북"],
-    plan: "지인 추천 기반 확산 장치.",
-    spec: { assets: ["공유 채널 아이콘 4종", "공유 시 OG 이미지/카피 1식"], interaction: "각 채널 공유 API 호출", note: "" }
-  },
-
-  /* ---------- 댓글 참여 ---------- */
-  comments: {
-    title: "국민콜 110!\n어떤 분들에게 가장 필요하다고 생각하세요?",
-    guide: "댓글에 참여해 주신 모든 분들께 콩 1개를 드립니다.",
-    period: "참여기간 : 2026년 06월 08일 ~ 2026년 06월 30일",
-    beanDate: "콩 지급 일자 : 2026년 07월 03일",
-    disclaimer: "무성의, 반복, 악성댓글에는 콩이 지급되지 않습니다.",
-    sideNote: "복지사·사회복지사, 어르신 등 타깃 공감 말풍선 일러스트 배치",
-    plan: "참여 허들이 가장 낮은 미션. 댓글 = 콩 1개. UGC로 캠페인 공감대 형성.",
-    spec: {
-      assets: ["말풍선 일러스트 1식"],
-      interaction: "댓글 작성 시 콩 지급(1회/ID). 댓글 컴포넌트는 해피빈 공통 모듈 그대로 사용.",
-      note: "댓글 영역은 공통 디자인 — 커스텀 불가"
-    }
-  }
-};
-
+/* 캠페인 동적 로드: URL ?c=id 파라미터 기반 */
+(function(){
+  var qid = new URLSearchParams(location.search).get('c') || 'kookmincall110';
+  var s = document.createElement('script');
+  s.src = 'campaigns/' + qid + '.js';
+  s.onerror = function(){
+    document.getElementById('app').innerHTML =
+      '<p style="padding:60px;text-align:center;color:#c05050;">캠페인 파일을 찾을 수 없어요: campaigns/' + qid + '.js</p>';
+  };
+  document.head.appendChild(s);
+})();
 </script>
 <script>
 (function(){
@@ -1453,174 +1297,7 @@ window.CAMPAIGNS["kookmincall110"] = {
     if((e.ctrlKey||e.metaKey) && (e.key==='y'||(e.shiftKey&&e.key==='Z'))){ e.preventDefault(); redo(); }
   });
 
-  /* =========================================================
-     17. 모바일 미리보기
-  ========================================================= */
-  var mobileOn = false;
-  document.getElementById('mobileToggle').addEventListener('click', function(){
-    mobileOn = !mobileOn;
-    document.body.classList.toggle('mobile-preview', mobileOn);
-    document.getElementById('mobileToggle').classList.toggle('mobile-on', mobileOn);
-    toast(mobileOn ? '모바일 뷰 (390px)' : '데스크톱 뷰');
-  });
-
-  /* =========================================================
-     18. 블록 조작
-  ========================================================= */
-  function swapMissionType(idx, newType){
-    recordUndo();
-    var old = draft.missions[idx];
-    var def = clone(MISSION_DEFAULTS[newType] || {type:newType});
-    ['bean','cta','band','plan'].forEach(function(k){
-      if(old[k] !== undefined && old[k] !== null) def[k] = old[k];
-    });
-    draft.missions[idx] = def;
-    markDirty(); save(); render();
-    toast(getMissionTypeInfo(newType).name+'으로 교체됐어요');
-  }
-  function addMission(afterIdx){
-    recordUndo();
-    var newM = clone(MISSION_DEFAULTS.story);
-    newM.band = 'band1';
-    if(afterIdx === undefined || afterIdx < 0) draft.missions.push(newM);
-    else draft.missions.splice(afterIdx+1, 0, newM);
-    markDirty(); save(); render();
-    toast('스토리 블록 추가됨');
-  }
-  function removeMission(idx){
-    if(draft.missions.length <= 1){ toast('마지막 블록은 삭제할 수 없어요'); return; }
-    recordUndo();
-    draft.missions.splice(idx, 1);
-    markDirty(); save(); render();
-    toast('블록이 삭제됐어요');
-  }
-  function moveMission(idx, dir){
-    var arr = draft.missions;
-    var ni = idx + dir;
-    if(ni < 0 || ni >= arr.length) return;
-    recordUndo();
-    var tmp = arr[idx]; arr[idx] = arr[ni]; arr[ni] = tmp;
-    markDirty(); save(); render();
-  }
-  function copyMission(idx){
-    recordUndo();
-    var newM = clone(draft.missions[idx]);
-    draft.missions.splice(idx+1, 0, newM);
-    markDirty(); save(); render();
-    toast('블록이 복사됐어요');
-  }
-
-  /* =========================================================
-     19. 컴포넌트 피커
-  ========================================================= */
-  var _cpTargetIdx = -1;
-  function showCompPicker(idx){
-    _cpTargetIdx = idx;
-    var m = draft.missions[idx];
-    var grid = document.getElementById('cpGrid');
-    grid.innerHTML = MISSION_TYPES.map(function(t){
-      var active = (m.type === t.type) ? ' active' : '';
-      return '<div class="cp-card'+active+'" data-cptype="'+t.type+'">'
-        +'<div class="cp-ico">'+t.ico+'</div>'
-        +'<div class="cp-name">'+t.name+'</div>'
-        +'<div class="cp-desc">'+t.desc+'</div>'
-        +'</div>';
-    }).join('');
-    document.getElementById('compPicker').classList.remove('hidden');
-  }
-  function closeCompPicker(){
-    document.getElementById('compPicker').classList.add('hidden');
-    _cpTargetIdx = -1;
-  }
-  document.getElementById('cpClose').addEventListener('click', closeCompPicker);
-  document.getElementById('compPicker').addEventListener('click', function(e){
-    if(e.target === document.getElementById('compPicker')) closeCompPicker();
-  });
-  document.getElementById('cpGrid').addEventListener('click', function(e){
-    var card = e.target.closest('[data-cptype]');
-    if(!card || _cpTargetIdx < 0) return;
-    swapMissionType(_cpTargetIdx, card.dataset.cptype);
-    closeCompPicker();
-  });
-  document.getElementById('cpAddAfter').addEventListener('click', function(){
-    var idx = _cpTargetIdx;
-    closeCompPicker();
-    addMission(idx);
-  });
-
-  /* =========================================================
-     20. 팔레트 프리셋
-  ========================================================= */
-  var paletteKey = 'hb_palettes_v1';
-  var BUILTIN_PALETTES = [
-    {id:'hb-default',  builtin:true, name:'해피빈 기본',
-     colors:{primary:'#2f7fd4',accent:'#16c265',heroFrom:'#cfe7fb',heroTo:'#eef7e9',band1:'#eaf4fd',band2:'#eaf7ef'}},
-    {id:'warm-orange', builtin:true, name:'따뜻한 주황',
-     colors:{primary:'#d4612f',accent:'#f5a623',heroFrom:'#fff3e0',heroTo:'#fff8ec',band1:'#fff8f0',band2:'#fffbf2'}},
-    {id:'calm-purple', builtin:true, name:'차분한 보라',
-     colors:{primary:'#6b4fa8',accent:'#9c6fdb',heroFrom:'#f3e5f5',heroTo:'#ede7f6',band1:'#f3e5f5',band2:'#ede7f6'}},
-    {id:'forest-green',builtin:true, name:'포레스트 그린',
-     colors:{primary:'#2e7d52',accent:'#43a047',heroFrom:'#e8f5e9',heroTo:'#f1f8e9',band1:'#e8f5e9',band2:'#f1f8e9'}}
-  ];
-  function getUserPalettes(){
-    try{ return JSON.parse(localStorage.getItem(paletteKey)||'[]'); }catch(e){ return []; }
-  }
-  function putUserPalettes(arr){ localStorage.setItem(paletteKey, JSON.stringify(arr)); }
-  function applyPalette(colors){
-    recordUndo();
-    if(!draft.theme) draft.theme = {};
-    var keys = Object.keys(colors);
-    for(var ki=0;ki<keys.length;ki++) draft.theme[keys[ki]] = colors[keys[ki]];
-    applyTheme(draft.theme);
-    syncColorPickers();
-    markDirty();
-    toast('팔레트 적용됨');
-  }
-  function renderPaletteList(){
-    var el = document.getElementById('paletteList');
-    if(!el) return;
-    var user = getUserPalettes();
-    var all = BUILTIN_PALETTES.concat(user);
-    el.innerHTML = all.map(function(p){
-      var swatches = ['primary','accent','heroFrom','heroTo','band1','band2'].map(function(k){
-        return '<div class="palette-swatch" style="background:'+esc(p.colors[k]||'#ccc')+'"></div>';
-      }).join('');
-      return '<div class="palette-item" data-palid="'+esc(p.id)+'">'
-        +'<div class="palette-swatches">'+swatches+'</div>'
-        +'<span class="palette-name">'+esc(p.name)+'</span>'
-        +(!p.builtin?'<button class="palette-del" data-paldel="'+esc(p.id)+'" title="삭제">X</button>':'')
-        +'</div>';
-    }).join('');
-    el.querySelectorAll('.palette-item').forEach(function(item){
-      item.addEventListener('click', function(e){
-        if(e.target.closest('[data-paldel]')) return;
-        var pid = item.dataset.palid;
-        for(var ai=0;ai<all.length;ai++){
-          if(all[ai].id===pid){ applyPalette(all[ai].colors); break; }
-        }
-      });
-    });
-    el.querySelectorAll('[data-paldel]').forEach(function(btn){
-      btn.addEventListener('click', function(e){
-        e.stopPropagation();
-        putUserPalettes(getUserPalettes().filter(function(p){ return p.id!==btn.dataset.paldel; }));
-        renderPaletteList();
-      });
-    });
-  }
-  document.getElementById('paletteSaveBtn').addEventListener('click', function(){
-    var name = prompt('팔레트 이름을 입력하세요');
-    if(!name) return;
-    var colors = {};
-    colorMap.forEach(function(f){
-      colors[f.id] = (draft.theme||{})[f.id] || getComputedStyle(document.documentElement).getPropertyValue(f.css).trim();
-    });
-    var arr = getUserPalettes();
-    arr.unshift({id:'u_'+Date.now(), name:name.trim(), colors:colors});
-    putUserPalettes(arr);
-    renderPaletteList();
-    toast('팔레트 저장됨');
-  });
+  
 
   /* =========================================================
      21. 버전 히스토리
