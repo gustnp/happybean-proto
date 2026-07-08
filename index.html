@@ -352,6 +352,67 @@
     .hp{width:100vw;}
   }
   @media print{.topbar,.ep,.hp,.toast,.floating,.block-bar{display:none!important;}}
+
+  /* =========================================================
+     댓글(코멘트) 핀 시스템
+  ========================================================= */
+  body.comment-mode #app{ cursor:crosshair; }
+  body.comment-mode #app *{ pointer-events:none; }
+  body.comment-mode .cmt-pin{ pointer-events:auto; }
+  .cmt-pin{
+    position:absolute; z-index:300;
+    width:28px; height:28px; border-radius:50% 50% 50% 0;
+    transform:rotate(-45deg);
+    background:var(--primary,#16c265); border:2px solid #fff;
+    box-shadow:0 2px 8px rgba(0,0,0,.3);
+    cursor:pointer; display:flex; align-items:center; justify-content:center;
+    transition:transform .15s, box-shadow .15s;
+  }
+  .cmt-pin:hover{ transform:rotate(-45deg) scale(1.15); box-shadow:0 4px 12px rgba(0,0,0,.4); }
+  .cmt-pin.resolved{ background:#9aa0a6; }
+  .cmt-pin .pin-num{
+    transform:rotate(45deg); color:#fff; font-size:11px; font-weight:800; line-height:1;
+  }
+  .cmt-popup{
+    position:fixed; z-index:400; background:#fff; border-radius:14px;
+    box-shadow:0 8px 32px rgba(0,0,0,.22); width:300px;
+    font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+    font-size:13px; overflow:hidden;
+  }
+  .cmt-popup-head{
+    background:#1f2226; color:#eee; padding:12px 16px;
+    display:flex; align-items:center; justify-content:space-between;
+    font-size:12.5px; font-weight:700;
+  }
+  .cmt-popup-head .close-btn{
+    background:none; border:none; color:#aaa; cursor:pointer; font-size:16px; line-height:1; padding:0;
+  }
+  .cmt-popup-body{ padding:14px 16px; max-height:320px; overflow-y:auto; }
+  .cmt-thread-item{ margin-bottom:12px; padding-bottom:12px; border-bottom:1px solid #eef0f2; }
+  .cmt-thread-item:last-child{ border-bottom:none; margin-bottom:0; }
+  .cmt-thread-author{ font-weight:700; color:#1f2226; font-size:12.5px; }
+  .cmt-thread-time{ color:#9aa0a6; font-size:11.5px; margin-left:6px; }
+  .cmt-thread-text{ color:#3a3f46; margin-top:5px; line-height:1.55; white-space:pre-wrap; }
+  .cmt-popup-footer{ border-top:1px solid #eef0f2; padding:10px 14px; background:#fafbfc; }
+  .cmt-popup-footer input, .cmt-popup-footer textarea{
+    width:100%; border:1px solid #dde1e5; border-radius:8px;
+    padding:8px 10px; font-size:12.5px; margin-bottom:6px;
+    font-family:inherit; resize:none; outline:none;
+    box-sizing:border-box;
+  }
+  .cmt-popup-footer input:focus, .cmt-popup-footer textarea:focus{ border-color:#16c265; }
+  .cmt-popup-actions{ display:flex; gap:6px; justify-content:flex-end; flex-wrap:wrap; margin-top:4px; }
+  .cmt-popup-actions button{
+    padding:6px 12px; border-radius:8px; font-size:12px; font-weight:700;
+    cursor:pointer; border:none;
+  }
+  .cmt-btn-send{ background:#16c265; color:#fff; }
+  .cmt-btn-resolve{ background:#f1f3f5; color:#5b6168; }
+  .cmt-btn-del{ background:#fee; color:#c04040; }
+  .cmt-resolved-badge{
+    display:inline-block; background:#e8f5e9; color:#2e7d52;
+    font-size:11px; font-weight:700; padding:2px 8px; border-radius:6px; margin-left:6px;
+  }
 </style>
 </head>
 <body class="mode-design">
@@ -368,6 +429,8 @@
     <button class="tb-btn tb-undo" id="undoBtn" title="실행 취소 (Ctrl+Z)">↩</button>
     <button class="tb-btn tb-redo" id="redoBtn" title="다시 실행 (Ctrl+Y)">↪</button>
     <button class="tb-btn" id="histToggle">🕐 히스토리</button>
+        <button class="tb-btn" id="commentModeBtn">💬 코멘트</button>
+        <button class="tb-btn" id="commentHideBtn" style="display:none;">핀 숨김</button>
     <button class="tb-btn" onclick="window.print()">인쇄·PDF</button>
     <button class="tb-btn" id="editToggle">✏️ 편집</button>
     <span class="save-dot" id="saveDot" title="저장 중..."></span>
@@ -1934,6 +1997,211 @@ try{
   renderPaletteList();
   updateUndoUI();
   buildEpPlan();
+
+  /* =========================================================
+     코멘트(핀) 시스템
+  ========================================================= */
+  (function(){
+    var CMT_KEY = 'hb_comments_v1_' + (draft.meta.id || 'default');
+    var commentMode = false;
+    var pinsHidden = false;
+    var activePopup = null;
+
+    function loadComments(){ try{ return JSON.parse(localStorage.getItem(CMT_KEY)||'[]'); }catch(e){ return []; } }
+    function saveComments(arr){ localStorage.setItem(CMT_KEY, JSON.stringify(arr)); }
+
+    function formatTime(iso){
+      var d = new Date(iso);
+      return (d.getMonth()+1)+'/'+(d.getDate())+' '
+        +('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2);
+    }
+
+    /* 핀 전체 렌더 */
+    function renderPins(){
+      document.querySelectorAll('.cmt-pin').forEach(function(p){ p.remove(); });
+      if(pinsHidden) return;
+      var app = document.getElementById('app');
+      if(!app) return;
+      app.style.position = 'relative';
+      var cmts = loadComments();
+      cmts.forEach(function(c, idx){
+        var pin = document.createElement('div');
+        pin.className = 'cmt-pin' + (c.resolved ? ' resolved' : '');
+        pin.style.left = c.xPct + '%';
+        pin.style.top = c.yAbs + 'px';
+        pin.innerHTML = '<span class="pin-num">' + (idx+1) + '</span>';
+        pin.addEventListener('click', function(e){
+          e.stopPropagation();
+          openThreadPopup(idx, pin);
+        });
+        app.appendChild(pin);
+      });
+    }
+
+    /* 팝업 닫기 */
+    function closePopup(){
+      if(activePopup){ activePopup.remove(); activePopup = null; }
+    }
+
+    /* 새 코멘트 입력 팝업 */
+    function openNewPopup(xPct, yAbs, e){
+      closePopup();
+      var popup = document.createElement('div');
+      popup.className = 'cmt-popup';
+      popup.style.left = Math.min(e.clientX, window.innerWidth-320) + 'px';
+      popup.style.top = Math.min(e.clientY+10, window.innerHeight-260) + 'px';
+      popup.innerHTML =
+        '<div class="cmt-popup-head"><span>💬 새 코멘트</span><button class="close-btn">✕</button></div>'
+        +'<div class="cmt-popup-footer">'
+        +'<input id="cmtAuthor" placeholder="이름 (예: 기획자 이현수)" maxlength="30">'
+        +'<textarea id="cmtText" rows="3" placeholder="코멘트 내용을 입력하세요"></textarea>'
+        +'<div class="cmt-popup-actions">'
+        +'<button class="cmt-popup-actions cmt-btn-resolve" id="cmtCancel">취소</button>'
+        +'<button class="cmt-btn-send" id="cmtSend">등록</button>'
+        +'</div></div>';
+      document.body.appendChild(popup);
+      activePopup = popup;
+
+      // 마지막 작성자 기억
+      var savedAuthor = localStorage.getItem('hb_cmt_author') || '';
+      popup.querySelector('#cmtAuthor').value = savedAuthor;
+      popup.querySelector('#cmtText').focus();
+
+      popup.querySelector('.close-btn').addEventListener('click', function(){ closePopup(); toggleCommentMode(false); });
+      popup.querySelector('#cmtCancel').addEventListener('click', function(){ closePopup(); toggleCommentMode(false); });
+      popup.querySelector('#cmtSend').addEventListener('click', function(){
+        var author = popup.querySelector('#cmtAuthor').value.trim() || '익명';
+        var text = popup.querySelector('#cmtText').value.trim();
+        if(!text) return;
+        localStorage.setItem('hb_cmt_author', author);
+        var cmts = loadComments();
+        cmts.push({ id: Date.now(), xPct: xPct, yAbs: yAbs, author: author, text: text,
+                    time: new Date().toISOString(), resolved: false, replies: [] });
+        saveComments(cmts);
+        closePopup();
+        toggleCommentMode(false);
+        renderPins();
+        toast('코멘트 등록됨');
+      });
+    }
+
+    /* 기존 핀 스레드 팝업 */
+    function openThreadPopup(idx, pinEl){
+      closePopup();
+      var cmts = loadComments();
+      var c = cmts[idx];
+      if(!c) return;
+
+      var popup = document.createElement('div');
+      popup.className = 'cmt-popup';
+      var rect = pinEl.getBoundingClientRect();
+      popup.style.left = Math.min(rect.right+8, window.innerWidth-320) + 'px';
+      popup.style.top = Math.max(rect.top-8, 10) + 'px';
+
+      function renderThread(){
+        var cmts2 = loadComments(); var c2 = cmts2[idx];
+        var threadHtml = '<div class="cmt-thread-item">'
+          +'<span class="cmt-thread-author">'+esc(c2.author)+'</span>'
+          +'<span class="cmt-thread-time">'+formatTime(c2.time)+'</span>'
+          +(c2.resolved?'<span class="cmt-resolved-badge">✓ 해결됨</span>':'')
+          +'<div class="cmt-thread-text">'+esc(c2.text)+'</div></div>';
+        (c2.replies||[]).forEach(function(r){
+          threadHtml += '<div class="cmt-thread-item">'
+            +'<span class="cmt-thread-author">'+esc(r.author)+'</span>'
+            +'<span class="cmt-thread-time">'+formatTime(r.time)+'</span>'
+            +'<div class="cmt-thread-text">'+esc(r.text)+'</div></div>';
+        });
+        popup.innerHTML =
+          '<div class="cmt-popup-head"><span>💬 코멘트 #'+(idx+1)+'</span><button class="close-btn">✕</button></div>'
+          +'<div class="cmt-popup-body">'+threadHtml+'</div>'
+          +'<div class="cmt-popup-footer">'
+          +'<input id="replyAuthor" placeholder="이름" maxlength="30" value="'+(localStorage.getItem('hb_cmt_author')||'')+'">'
+          +'<textarea id="replyText" rows="2" placeholder="답글 달기..."></textarea>'
+          +'<div class="cmt-popup-actions">'
+          +(c2.resolved
+            ? '<button class="cmt-btn-resolve" id="cmtReopen">다시 열기</button>'
+            : '<button class="cmt-btn-resolve" id="cmtResolve">✓ 해결</button>')
+          +'<button class="cmt-btn-del" id="cmtDel">삭제</button>'
+          +'<button class="cmt-btn-send" id="cmtReply">답글</button>'
+          +'</div></div>';
+
+        popup.querySelector('.close-btn').addEventListener('click', closePopup);
+        popup.querySelector('#cmtReply').addEventListener('click', function(){
+          var author = popup.querySelector('#replyAuthor').value.trim() || '익명';
+          var text = popup.querySelector('#replyText').value.trim();
+          if(!text) return;
+          localStorage.setItem('hb_cmt_author', author);
+          var cmts3 = loadComments();
+          cmts3[idx].replies = cmts3[idx].replies || [];
+          cmts3[idx].replies.push({ author: author, text: text, time: new Date().toISOString() });
+          saveComments(cmts3);
+          renderThread();
+        });
+        var resolveBtn = popup.querySelector('#cmtResolve');
+        if(resolveBtn) resolveBtn.addEventListener('click', function(){
+          var cmts3 = loadComments(); cmts3[idx].resolved = true; saveComments(cmts3);
+          renderThread(); renderPins();
+        });
+        var reopenBtn = popup.querySelector('#cmtReopen');
+        if(reopenBtn) reopenBtn.addEventListener('click', function(){
+          var cmts3 = loadComments(); cmts3[idx].resolved = false; saveComments(cmts3);
+          renderThread(); renderPins();
+        });
+        popup.querySelector('#cmtDel').addEventListener('click', function(){
+          if(!confirm('코멘트를 삭제할까요?')) return;
+          var cmts3 = loadComments(); cmts3.splice(idx,1); saveComments(cmts3);
+          closePopup(); renderPins();
+        });
+      }
+      renderThread();
+      document.body.appendChild(popup);
+      activePopup = popup;
+    }
+
+    /* 코멘트 모드 토글 */
+    function toggleCommentMode(force){
+      commentMode = (force !== undefined) ? force : !commentMode;
+      document.body.classList.toggle('comment-mode', commentMode);
+      var btn = document.getElementById('commentModeBtn');
+      if(btn) btn.style.background = commentMode ? '#16c265' : '';
+      if(btn) btn.style.color = commentMode ? '#fff' : '';
+      var hideBtn = document.getElementById('commentHideBtn');
+      if(hideBtn) hideBtn.style.display = '';
+    }
+
+    /* 캔버스 클릭 → 핀 생성 */
+    document.getElementById('app').addEventListener('click', function(e){
+      if(!commentMode) return;
+      var app = document.getElementById('app');
+      var rect = app.getBoundingClientRect();
+      var scrollY = window.pageYOffset || document.documentElement.scrollTop;
+      var xPct = ((e.clientX - rect.left) / rect.width * 100);
+      var yAbs = e.clientY - rect.top + app.scrollTop;
+      openNewPopup(xPct, yAbs, e);
+    });
+
+    /* 툴바 버튼 */
+    var cmBtn = document.getElementById('commentModeBtn');
+    if(cmBtn) cmBtn.addEventListener('click', function(){ toggleCommentMode(); });
+
+    var hideBtn = document.getElementById('commentHideBtn');
+    if(hideBtn) hideBtn.addEventListener('click', function(){
+      pinsHidden = !pinsHidden;
+      hideBtn.textContent = pinsHidden ? '핀 표시' : '핀 숨김';
+      renderPins();
+    });
+
+    /* 팝업 외부 클릭 닫기 */
+    document.addEventListener('click', function(e){
+      if(activePopup && !activePopup.contains(e.target) && !e.target.closest('.cmt-pin')){
+        closePopup();
+      }
+    });
+
+    /* 초기 렌더 */
+    renderPins();
+  })();
+
 
 })();
 }catch(e){
