@@ -11,9 +11,9 @@
     --font-body:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;
     --font-nanum-gothic:"Nanum Gothic",-apple-system,sans-serif;
     --font-nanum-myeongjo:"Nanum Myeongjo",Georgia,serif;
-    --primary:#2f7fd4; --accent:#16c265;
-    --hero-from:#cfe7fb; --hero-to:#eef7e9;
-    --band1:#eaf4fd; --band2:#eaf7ef;
+    --primary:#03c75a; --accent:#ff5f2e;
+    --hero-from:#d4f0e4; --hero-to:#fffbf0;
+    --band1:#f0fbf5; --band2:#fff8f0;
     --ink:#2c2f33; --body:#5b6168; --muted:#9aa0a6;
     --card:#fff; --line:#eceef0; --skeleton:#e3e6ea;
     --w:960px;
@@ -31,8 +31,8 @@
   .band.b-band2{background:var(--band2);}
   .center{text-align:center;}
   .pre{white-space:pre-line;}
-  .h1{font-size:clamp(28px,4.6vw,42px);font-weight:800;line-height:1.34;color:var(--ink);}
-  .h2{font-size:clamp(22px,3.4vw,30px);font-weight:800;line-height:1.36;color:var(--ink);}
+  .h1{font-size:clamp(28px,4.6vw,42px);font-weight:800;line-height:1.34;color:var(--ink);letter-spacing:-.03em;}
+  .h2{font-size:clamp(22px,3.4vw,30px);font-weight:800;line-height:1.36;color:var(--ink);letter-spacing:-.02em;}
   .lead{font-size:clamp(15px,1.8vw,17px);line-height:1.68;}
   .eyebrow{display:inline-block;background:#fff;color:var(--primary);border:1px solid var(--line);
     font-size:13px;font-weight:700;padding:7px 16px;border-radius:20px;}
@@ -54,11 +54,11 @@
 
   .pill-btn{display:inline-flex;align-items:center;justify-content:center;min-height:50px;
     padding:0 34px;background:var(--accent);color:#fff;border-radius:28px;font-weight:700;
-    font-size:16px;box-shadow:0 6px 14px rgba(0,0,0,.12);cursor:pointer;border:none;
+    font-size:16px;box-shadow:0 6px 20px rgba(255,95,46,.30);cursor:pointer;border:none;
     transition:transform .1s,opacity .15s;}
   .pill-btn:active{transform:scale(.97);}
   .pill-btn:disabled{opacity:.6;cursor:default;transform:none;}
-  .pill-btn.ghost{background:#fff;color:var(--primary);border:1.5px solid var(--primary);
+  .pill-btn.ghost{background:#fff;color:var(--primary);border:2px solid var(--primary);
     box-shadow:none;min-height:42px;padding:0 24px;font-size:14px;}
   .bean{display:inline-block;background:#fff;border:1px solid var(--line);color:var(--body);
     font-size:13px;font-weight:700;padding:7px 16px;border-radius:18px;}
@@ -71,7 +71,7 @@
   .qcard{display:flex;align-items:center;gap:16px;background:#fff;border:1px solid var(--line);
     border-radius:16px;padding:20px 22px;box-shadow:0 4px 12px rgba(0,0,0,.04);text-align:left;
     cursor:pointer;transition:border-color .15s,background .15s;}
-  .qcard:hover{border-color:var(--primary);background:#f8fbff;}
+  .qcard:hover{border-color:var(--primary);background:#f0fbf5;}
   .qcard .ic{flex:none;width:48px;height:48px;border-radius:50%;background:var(--band1);transition:background .2s;}
   .qcard.correct-reveal{border:2px solid #16c265!important;background:#f0faf5!important;}
   .qcard.correct-reveal .ic{background:#16c265!important;}
@@ -80,10 +80,12 @@
   .quiz-answered .qcard{pointer-events:none;}
 
   .cards-3{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;}
-  .chan-card{background:#fff;border:1px solid var(--line);border-radius:18px;
-    padding:28px 20px;text-align:center;box-shadow:0 6px 16px rgba(0,0,0,.05);}
-  .chan-badge{display:inline-block;background:var(--primary);color:#fff;font-size:12.5px;
-    font-weight:700;padding:6px 14px;border-radius:16px;}
+  .chan-card{background:#fff;border:none;border-radius:20px;
+    padding:32px 22px;text-align:center;box-shadow:0 8px 28px rgba(0,0,0,.09);
+    border-top:4px solid var(--primary);transition:transform .15s,box-shadow .15s;}
+  .chan-card:hover{transform:translateY(-4px);box-shadow:0 16px 40px rgba(0,0,0,.12);}
+  .chan-badge{display:inline-block;background:var(--primary);color:#fff;font-size:11px;
+    font-weight:800;padding:4px 12px;border-radius:20px;letter-spacing:.5px;}
   .chan-title{font-size:17px;font-weight:800;color:var(--ink);margin-top:14px;}
   .chan-desc{font-size:14px;line-height:1.6;margin-top:10px;}
 
@@ -106,7 +108,7 @@
   .ft{background:#f4f6f7;color:#9098a0;padding:40px 0;font-size:12.5px;line-height:1.8;}
   .ft b{color:#6b7178;font-weight:700;}
 
-  .floating{position:fixed;top:96px;right:24px;z-index:55;background:var(--primary);border-radius:18px;
+  .floating{position:fixed;top:96px;right:24px;z-index:55;background:#1a8c4e;border-radius:18px;
     padding:13px 22px;text-align:center;box-shadow:0 8px 18px rgba(0,0,0,.25);color:#fff;}
   .floating .lbl{font-size:12px;font-weight:700;opacity:.9;}
   .floating .val{font-size:23px;font-weight:800;color:#f1ff3d;margin-top:3px;}
