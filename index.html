@@ -894,7 +894,12 @@ try{
 
   function pullDraftFromServer(cb){
     var binId = localStorage.getItem(DRAFT_BIN_KEY);
-    if(!binId){ cb && cb(); return; }
+    if(!binId){
+      var el = document.getElementById('draftSyncStatus');
+      if(el){ el.textContent = '클라우드에 저장된 드래프트 없음 (편집 후 자동 저장됩니다)'; el.style.color='#888';
+        clearTimeout(el._t); el._t = setTimeout(function(){ el.textContent=''; }, 4000); }
+      cb && cb(); return;
+    }
     var showS = function(msg, ok){
       var el = document.getElementById('draftSyncStatus');
       if(!el) return;
@@ -2190,6 +2195,8 @@ try{
   buildEpPlan();
   // 페이지 로드 시 클라우드 드래프트 자동 로드
   pullDraftFromServer();
+  var _draftPullBtn = document.getElementById('draftPullBtn');
+  if(_draftPullBtn) _draftPullBtn.addEventListener('click', function(){ pullDraftFromServer(); });
 
   /* =========================================================
      폰트 적용
@@ -2604,8 +2611,7 @@ try{
     var syncBtn = document.getElementById('syncPullBtn');
     if(syncBtn) syncBtn.addEventListener('click', function(){ pullFromServer(); });
 
-    var draftPullBtn = document.getElementById('draftPullBtn');
-    if(draftPullBtn) draftPullBtn.addEventListener('click', function(){ pullDraftFromServer(); });
+    // draftPullBtn binding moved to main scope
 
     var hideBtn = document.getElementById('commentHideBtn');
     if(hideBtn) hideBtn.addEventListener('click', function(){
