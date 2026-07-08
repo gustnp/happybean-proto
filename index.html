@@ -495,8 +495,10 @@
         <button class="tb-btn" id="commentModeBtn">💬 코멘트</button>
         <button class="tb-btn" id="commentHideBtn" style="display:none;">핀 숨김</button>
         <button class="tb-btn" id="commentListBtn">📋 코멘트 목록</button>
-        <button class="tb-btn" id="syncPullBtn" title="서버에서 최신 코멘트 가져오기">🔄 동기화</button>
+        <button class="tb-btn" id="syncPullBtn" title="서버에서 최신 코멘트 가져오기">🔄 코멘트 동기화</button>
+        <button class="tb-btn" id="draftPullBtn" title="서버에서 최신 드래프트 가져오기">☁ 드래프트 불러오기</button>
         <span id="syncStatus" style="font-size:11.5px;color:#16c265;align-self:center;"></span>
+        <span id="draftSyncStatus" style="font-size:11.5px;color:#16c265;align-self:center;"></span>
         <button class="tb-btn" id="clientShareBtn">🔗 클라이언트 공유</button>
     <button class="tb-btn" onclick="window.print()">인쇄·PDF</button>
     <button class="tb-btn" id="editToggle">✏️ 편집</button>
@@ -820,6 +822,104 @@ try{
   var qid = new URLSearchParams(location.search).get('c');
   var C = reg[qid] || reg[ids[0]];
   var storageKey = 'hb_draft_v2_' + C.meta.id;
+  var DRAFT_BIN_KEY  = 'hb_draft_bin_' + C.meta.id;
+  var DRAFT_JKEY     = '$2a$10$Pz6EsZEPeHA0GJYMxl3uEOhBkzmkTND.YzBG9Pc3iR5cxfguB.4lO';
+  var _draftSyncing  = false;
+  var _draftPushTimer = null;
+
+  /* base64 이미지 필드 제거 (용량 절약) */
+  function stripImages(obj){
+    if(!obj || typeof obj !== 'object') return obj;
+    if(Array.isArray(obj)) return obj.map(stripImages);
+    var out = {};
+    Object.keys(obj).forEach(function(k){
+      var v = obj[k];
+      if(typeof v === 'string' && v.indexOf('data:image') === 0) out[k] = null;
+      else out[k] = stripImages(v);
+    });
+    return out;
+  }
+
+  /* 로컬 이미지 필드만 추출 */
+  function extractImages(obj, prefix){
+    var imgs = {};
+    if(!obj || typeof obj !== 'object') return imgs;
+    if(Array.isArray(obj)){
+      obj.forEach(function(v,i){ Object.assign(imgs, extractImages(v, prefix+'['+i+']')); });
+      return imgs;
+    }
+    Object.keys(obj).forEach(function(k){
+      var v = obj[k];
+      if(typeof v === 'string' && v.indexOf('data:image') === 0) imgs[(prefix?prefix+'.':'')+k] = v;
+      else Object.assign(imgs, extractImages(v, (prefix?prefix+'.':'')+k));
+    });
+    return imgs;
+  }
+
+  /* 이미지 복원: 서버 draft에 로컬 이미지 덮어쓰기 */
+  function restoreImages(serverDraft, imgs){
+    Object.keys(imgs).forEach(function(path){
+      setVal(path, imgs[path], serverDraft);
+    });
+    return serverDraft;
+  }
+
+  function pushDraftToServer(){
+    if(_draftSyncing) return;
+    _draftSyncing = true;
+    var payload  = JSON.stringify({ draft: stripImages(clone(draft)) });
+    var binId    = localStorage.getItem(DRAFT_BIN_KEY);
+    var headers  = { 'Content-Type':'application/json', 'X-Master-Key': DRAFT_JKEY };
+    var done = function(){ _draftSyncing = false; };
+    var showS = function(msg, ok){
+      var el = document.getElementById('draftSyncStatus');
+      if(!el) return;
+      el.textContent = msg;
+      el.style.color = ok ? '#16c265' : '#e88';
+      clearTimeout(el._t);
+      el._t = setTimeout(function(){ el.textContent = ''; }, 3000);
+    };
+    if(binId){
+      fetch('https://api.jsonbin.io/v3/b/'+binId, {method:'PUT', headers:headers, body:payload})
+        .then(function(r){ done(); if(r.ok) showS('☁ 드래프트 저장됨', true); else showS('클라우드 저장 실패', false); })
+        .catch(function(){ done(); showS('클라우드 연결 실패', false); });
+    } else {
+      var h2 = Object.assign({}, headers, {'X-Bin-Name':'hb-draft-'+(C.meta.id||'default')});
+      fetch('https://api.jsonbin.io/v3/b', {method:'POST', headers:h2, body:payload})
+        .then(function(r){ return r.json(); })
+        .then(function(d){ localStorage.setItem(DRAFT_BIN_KEY, d.metadata.id); done(); showS('☁ 드래프트 저장됨', true); })
+        .catch(function(){ done(); showS('클라우드 저장 실패', false); });
+    }
+  }
+
+  function pullDraftFromServer(cb){
+    var binId = localStorage.getItem(DRAFT_BIN_KEY);
+    if(!binId){ cb && cb(); return; }
+    var showS = function(msg, ok){
+      var el = document.getElementById('draftSyncStatus');
+      if(!el) return;
+      el.textContent = msg;
+      el.style.color = ok ? '#16c265' : '#e88';
+      clearTimeout(el._t);
+      el._t = setTimeout(function(){ el.textContent = ''; }, 3000);
+    };
+    showS('드래프트 불러오는 중…', true);
+    fetch('https://api.jsonbin.io/v3/b/'+binId+'/latest', {headers:{'X-Master-Key': DRAFT_JKEY}})
+      .then(function(r){ return r.json(); })
+      .then(function(d){
+        if(!d.record || !d.record.draft) { cb && cb(); return; }
+        var serverDraft = d.record.draft;
+        // 로컬 이미지 보존
+        var localImgs = extractImages(draft, '');
+        draft = restoreImages(serverDraft, localImgs);
+        localStorage.setItem(storageKey, JSON.stringify(draft));
+        applyTheme(draft.theme);
+        render(); syncColorPickers(); buildEpContent(); buildEpSections(); buildEpPlan();
+        showS('☁ 드래프트 불러옴', true);
+        cb && cb();
+      })
+      .catch(function(){ showS('클라우드 연결 실패', false); cb && cb(); });
+  }
   var draft;
   try {
     var _saved = localStorage.getItem(storageKey);
@@ -1383,7 +1483,10 @@ try{
       var dot = document.getElementById('saveDot');
       if(dot) setTimeout(function(){ dot.classList.remove('show'); }, 600);
       var note = document.getElementById('epNote');
-      if(note){ note.textContent = '✓ 자동 저장됨'; setTimeout(function(){ note.textContent='변경사항은 브라우저에 자동 저장됩니다'; },2000); }
+      if(note){ note.textContent = '✓ 저장됨'; setTimeout(function(){ note.textContent='변경사항은 자동 저장됩니다'; },2000); }
+      // 클라우드 푸시 (디바운스 3초)
+      clearTimeout(_draftPushTimer);
+      _draftPushTimer = setTimeout(pushDraftToServer, 3000);
     } catch(e){}
   }
 
@@ -2085,6 +2188,8 @@ try{
   renderPaletteList();
   updateUndoUI();
   buildEpPlan();
+  // 페이지 로드 시 클라우드 드래프트 자동 로드
+  pullDraftFromServer();
 
   /* =========================================================
      폰트 적용
@@ -2497,12 +2602,10 @@ try{
     if(cmBtn) cmBtn.addEventListener('click', function(){ toggleCommentMode(); });
 
     var syncBtn = document.getElementById('syncPullBtn');
-    if(syncBtn) syncBtn.addEventListener('click', function(){
-      pullFromServer(function(){
-        var panel = document.getElementById('cmtListPanel');
-        // 패널 열려있으면 목록 갱신
-      });
-    });
+    if(syncBtn) syncBtn.addEventListener('click', function(){ pullFromServer(); });
+
+    var draftPullBtn = document.getElementById('draftPullBtn');
+    if(draftPullBtn) draftPullBtn.addEventListener('click', function(){ pullDraftFromServer(); });
 
     var hideBtn = document.getElementById('commentHideBtn');
     if(hideBtn) hideBtn.addEventListener('click', function(){
