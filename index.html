@@ -43,6 +43,9 @@
   .img-drop-hint{display:flex;flex-direction:column;align-items:center;gap:8px;pointer-events:none;}
   .img-drop-hint .ico{font-size:28px;}
   .img-real{border-radius:16px;width:100%;display:block;}
+  .b-hero .img-wrapper{margin-top:32px;}
+  .b-hero .img-wrapper .img-real{border-radius:0;width:100%;max-height:520px;object-fit:cover;}
+  .b-hero .img-ph{border-radius:0;margin-top:32px;min-height:480px;border-left:none;border-right:none;border-radius:0;}
 
   .pill-btn{display:inline-flex;align-items:center;justify-content:center;min-height:50px;
     padding:0 34px;background:var(--accent);color:#fff;border-radius:28px;font-weight:700;
@@ -993,8 +996,9 @@ try{
       +'<span class="eyebrow"'+edAttr('hero.org')+'>'+esc(he.org)+'</span>'
       +'<div class="h1 pre"'+edAttr('hero.title')+'>'+pre(he.title)+'</div>'
       +(he.sub?'<div class="lead pre"'+edAttr('hero.sub')+'>'+pre(he.sub)+'</div>':'')
-      +imgHtml(he.image, he.imageNote, 230, 'hero.image')
-      +'</div></section>';
+      +'</div>'
+      +imgHtml(he.image, he.imageNote, 480, 'hero.image')
+      +'</section>';
     H += specHtml('히어로', he.spec);
 
     (d.missions||[]).forEach(function(m, i){
