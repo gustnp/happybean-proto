@@ -2172,11 +2172,11 @@ try{
     /* 캔버스 클릭 → 핀 생성 */
     document.getElementById('app').addEventListener('click', function(e){
       if(!commentMode) return;
+      e.stopPropagation();
       var app = document.getElementById('app');
       var rect = app.getBoundingClientRect();
-      var scrollY = window.pageYOffset || document.documentElement.scrollTop;
       var xPct = ((e.clientX - rect.left) / rect.width * 100);
-      var yAbs = e.clientY - rect.top + app.scrollTop;
+      var yAbs = (e.clientY - rect.top) + (window.pageYOffset || 0);
       openNewPopup(xPct, yAbs, e);
     });
 
