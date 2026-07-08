@@ -475,6 +475,60 @@
   [data-misi]:active{ cursor:grabbing; }
   [data-misi]::before{ content:'⠿'; color:#444; margin-right:6px; font-size:14px; }
   .drag-over-row{ border:1px dashed #16c265!important; background:rgba(22,194,101,.08)!important; }
+
+  /* =========================================================
+     캠페인 상태 + 승인 플로우
+  ========================================================= */
+  .status-pill{
+    display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:20px;
+    font-size:12px;font-weight:700;cursor:pointer;border:none;transition:opacity .15s;
+  }
+  .status-pill:hover{opacity:.85;}
+  .status-draft    {background:#2e3238;color:#aaa;}
+  .status-review   {background:#1a3a6a;color:#7ab3f5;}
+  .status-revision {background:#4a2800;color:#f5a623;}
+  .status-confirmed{background:#0d3320;color:#16c265;}
+  .status-menu{
+    position:fixed;z-index:200;background:#1e2329;border:1px solid #2e3238;
+    border-radius:10px;padding:6px;min-width:160px;box-shadow:0 8px 24px rgba(0,0,0,.4);
+  }
+  .status-menu button{
+    display:block;width:100%;text-align:left;padding:8px 12px;border:none;
+    background:none;color:#ccc;font-size:13px;border-radius:7px;cursor:pointer;
+  }
+  .status-menu button:hover{background:#2e3238;}
+
+  /* 섹션 승인 바 */
+  .approval-bar{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:10px 24px;border-top:1px solid rgba(0,0,0,.08);
+    background:rgba(0,0,0,.03);font-size:13px;
+  }
+  body.client-view .approval-bar{display:flex;}
+  body:not(.client-view) .approval-bar{display:flex;}
+  .approval-bar .ap-label{color:#9aa0a6;font-size:12.5px;}
+  .approval-bar .ap-label b{color:#3a3f46;}
+  .ap-btns{display:flex;gap:8px;}
+  .ap-btn{padding:7px 16px;border-radius:20px;border:none;font-size:12.5px;font-weight:700;cursor:pointer;transition:all .15s;}
+  .ap-btn.approve{background:#e8f5e9;color:#2e7d52;}
+  .ap-btn.approve:hover,.ap-btn.approve.active{background:#16c265;color:#fff;}
+  .ap-btn.reject {background:#fde8e8;color:#c04040;}
+  .ap-btn.reject:hover,.ap-btn.reject.active{background:#e53935;color:#fff;}
+  .ap-btn.active{box-shadow:0 2px 8px rgba(0,0,0,.15);}
+  .section-status-badge{
+    position:absolute;top:12px;right:16px;z-index:10;
+    padding:4px 10px;border-radius:12px;font-size:11.5px;font-weight:700;
+    pointer-events:none;
+  }
+  .badge-approved{background:#16c265;color:#fff;}
+  .badge-rejected{background:#e53935;color:#fff;}
+
+  /* 승인 현황 요약 (툴바) */
+  .approval-summary{
+    font-size:12px;color:#888;align-self:center;white-space:nowrap;
+  }
+  .approval-summary b{color:#16c265;}
+
 </style>
 </head>
 <body class="mode-design">
@@ -483,6 +537,8 @@
 <div class="client-view-banner">👁 클라이언트 보기 모드 — 편집 패널이 숨겨져 있습니다</div>
 <div class="topbar">
   <span class="label" id="tbLabel"><b>해피빈 캠페인 프로토타입</b></span>
+    <button class="status-pill status-draft" id="statusPill" title="캠페인 상태 변경">● 초안</button>
+    <span class="approval-summary" id="approvalSummary"></span>
   <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
     <div class="seg">
       <button data-mode="design" class="on">시안</button>
@@ -947,6 +1003,26 @@ try{
   function pre(s){ return esc(s); }
   function bandCls(b){ return b==='band1'?'b-band1':b==='band2'?'b-band2':''; }
 
+  /* 승인 바 HTML 생성 */
+  function approvalBarHtml(key){
+    var ap = (draft.meta.approvals || {})[key];
+    var status = ap ? ap.status : null;
+    var by = ap ? esc(ap.by||'') : '';
+    var label = {'hero':'히어로','sns':'SNS 밴드','donation':'기부금 안내','share':'공유 밴드','comments':'댓글 참여'};
+    var sname = label[key] || ('미션 ' + (parseInt(key.split('.')[1]||0)+1));
+    var statusTxt = status==='approved'
+      ? '<span style="color:#16c265;font-weight:700;">✅ 승인됨'+(by?' · '+by:'')+'</span>'
+      : status==='rejected'
+      ? '<span style="color:#e53935;font-weight:700;">❌ 수정 요청'+(by?' · '+by:'')+'</span>'
+      : '<span style="color:#aaa;">검토 대기중</span>';
+    return '<div class="approval-bar" data-apkey="'+key+'">'
+      +'<span class="ap-label">'+statusTxt+'</span>'
+      +'<span class="ap-btns">'
+      +'<button class="ap-btn approve'+(status==='approved'?' active':'')+'" data-apbtn="approve" data-apkey="'+key+'">✅ 승인</button>'
+      +'<button class="ap-btn reject'+(status==='rejected'?' active':'')+'" data-apbtn="reject" data-apkey="'+key+'">❌ 수정 요청</button>'
+      +'</span></div>';
+  }
+
   function imgHtml(src, note, h, key){
     var k = 'data-imgkey="'+esc(key||'')+'"';
     if(src) return '<div class="img-wrapper" '+k+'><img class="img-real" src="'+esc(src)+'" alt=""></div>';
@@ -1179,12 +1255,14 @@ try{
       +imgHtml(he.image, he.imageNote, 480, 'hero.image')
       +'</section>';
     H += specHtml('히어로', he.spec);
+    H += approvalBarHtml('hero');
 
     (d.missions||[]).forEach(function(m, i){
       var tag = '미션 '+(i+1)+' · '+m.type;
       H += planHtml(tag, m.plan);
       H += (MR[m.type]||MR.custom)(m, i);
       H += specHtml(tag, m.spec);
+      H += approvalBarHtml('missions.'+i);
     });
 
     var sn = d.sns;
@@ -1213,6 +1291,7 @@ try{
         +(dn.cta?'<div><button class="pill-btn ghost cta-btn" data-bean="" data-midx="-1">'+esc(dn.cta)+' →</button></div>':'')
         +'</div></section>';
       H += specHtml('기부금 안내', dn.spec);
+      H += approvalBarHtml('donation');
     }
 
     var sh = d.share;
@@ -1226,6 +1305,7 @@ try{
         }).join('')
         +'</div></section>';
       H += specHtml('공유하기', sh.spec);
+      H += approvalBarHtml('share');
     }
 
     var cm = d.comments;
@@ -1250,6 +1330,7 @@ try{
         +'<div class="center" style="margin-top:22px;"><span class="more">댓글 더보기</span></div>'
         +'</div></div></section>';
       H += specHtml('댓글 참여', cm.spec);
+      H += approvalBarHtml('comments');
     }
 
     H += '<footer class="ft"><div class="container">'
@@ -2199,6 +2280,88 @@ try{
   renderPaletteList();
   updateUndoUI();
   buildEpPlan();
+
+  /* =========================================================
+     캠페인 상태 관리
+  ========================================================= */
+  var STATUS_LIST = [
+    {val:'draft',     label:'● 초안',    cls:'status-draft'},
+    {val:'review',    label:'● 검토중',   cls:'status-review'},
+    {val:'revision',  label:'● 수정중',   cls:'status-revision'},
+    {val:'confirmed', label:'● 최종확정', cls:'status-confirmed'}
+  ];
+
+  function updateStatusPill(){
+    var s = draft.meta.campaignStatus || 'draft';
+    var info = STATUS_LIST.find(function(x){ return x.val===s; }) || STATUS_LIST[0];
+    var pill = document.getElementById('statusPill');
+    if(!pill) return;
+    pill.textContent = info.label;
+    pill.className = 'status-pill ' + info.cls;
+  }
+
+  var statusMenu = null;
+  document.getElementById('statusPill').addEventListener('click', function(e){
+    e.stopPropagation();
+    if(statusMenu){ statusMenu.remove(); statusMenu=null; return; }
+    var menu = document.createElement('div');
+    menu.className = 'status-menu';
+    var rect = e.target.getBoundingClientRect();
+    menu.style.cssText = 'position:fixed;left:'+rect.left+'px;top:'+(rect.bottom+6)+'px;z-index:200;';
+    menu.innerHTML = STATUS_LIST.map(function(s){
+      return '<button data-sv="'+s.val+'">'+s.label+'</button>';
+    }).join('');
+    document.body.appendChild(menu);
+    statusMenu = menu;
+    menu.querySelectorAll('button').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        recordUndo();
+        draft.meta.campaignStatus = btn.dataset.sv;
+        updateStatusPill(); markDirty();
+        menu.remove(); statusMenu = null;
+        toast('상태 변경: ' + btn.textContent);
+      });
+    });
+    document.addEventListener('click', function rmMenu(){ if(statusMenu){ statusMenu.remove(); statusMenu=null; } document.removeEventListener('click',rmMenu); });
+  });
+  updateStatusPill();
+
+  /* =========================================================
+     섹션 승인 / 반려 이벤트
+  ========================================================= */
+  function updateApprovalSummary(){
+    var ap = draft.meta.approvals || {};
+    var keys = Object.keys(ap);
+    var approved = keys.filter(function(k){ return ap[k] && ap[k].status==='approved'; }).length;
+    var total = keys.length;
+    var el = document.getElementById('approvalSummary');
+    if(el) el.innerHTML = total ? '<b>'+approved+'</b>/'+total+' 승인' : '';
+  }
+
+  document.getElementById('app').addEventListener('click', function(e){
+    var btn = e.target.closest('[data-apbtn]');
+    if(!btn) return;
+    e.stopPropagation();
+    var key    = btn.dataset.apkey;
+    var action = btn.dataset.apbtn;
+    var name   = prompt(action==='approve' ? '승인자 이름을 입력하세요' : '수정 요청자 이름을 입력하세요', localStorage.getItem('hb_cmt_author')||'');
+    if(name === null) return;
+    localStorage.setItem('hb_cmt_author', name);
+    if(!draft.meta.approvals) draft.meta.approvals = {};
+    var prev = draft.meta.approvals[key];
+    if(prev && prev.status === action){
+      // 같은 버튼 다시 클릭 → 취소
+      delete draft.meta.approvals[key];
+    } else {
+      draft.meta.approvals[key] = { status: action, by: name, time: new Date().toISOString() };
+    }
+    markDirty();
+    render(); buildEpContent(); buildEpSections(); buildEpPlan();
+    updateApprovalSummary();
+    toast(action==='approve' ? '✅ 승인 완료' : '❌ 수정 요청 등록');
+  });
+  updateApprovalSummary();
+
   // 페이지 로드 시 클라우드 드래프트 자동 로드
   pullDraftFromServer();
   var _draftPullBtn = document.getElementById('draftPullBtn');
