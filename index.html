@@ -827,18 +827,8 @@ try{
   var _draftSyncing  = false;
   var _draftPushTimer = null;
 
-  /* base64 이미지 필드 제거 (용량 절약) */
-  function stripImages(obj){
-    if(!obj || typeof obj !== 'object') return obj;
-    if(Array.isArray(obj)) return obj.map(stripImages);
-    var out = {};
-    Object.keys(obj).forEach(function(k){
-      var v = obj[k];
-      if(typeof v === 'string' && v.indexOf('data:image') === 0) out[k] = null;
-      else out[k] = stripImages(v);
-    });
-    return out;
-  }
+  /* 이미지 포함 전체 저장 (압축 후 업로드) */
+  function stripImages(obj){ return obj; } // 압축 후 이미지 포함 저장
 
   /* 로컬 이미지 필드만 추출 */
   function extractImages(obj, prefix){
@@ -1386,20 +1376,36 @@ try{
       inp.click();
     });
   }
+  function compressImage(dataUrl, maxW, quality, cb){
+    var im = new Image();
+    im.onload = function(){
+      var w = im.width, h = im.height;
+      if(w > maxW){ h = Math.round(h * maxW / w); w = maxW; }
+      var c = document.createElement('canvas');
+      c.width = w; c.height = h;
+      c.getContext('2d').drawImage(im, 0, 0, w, h);
+      cb(c.toDataURL('image/jpeg', quality));
+    };
+    im.src = dataUrl;
+  }
+
   function readImg(file, ph){
     var reader = new FileReader();
     reader.onload = function(e){
-      var url = e.target.result;
-      var key = ph.dataset.imgkey;
-      var img = document.createElement('img');
-      img.className = 'img-real'; img.src = url;
-      var wrap = document.createElement('div');
-      wrap.className = 'img-wrapper'; wrap.dataset.imgkey = key;
-      wrap.appendChild(img);
-      ph.parentNode.replaceChild(wrap, ph);
-      setVal(key, url);
-      save();
-      toast('✅ 이미지 업로드 완료!');
+      var raw = e.target.result;
+      compressImage(raw, 1200, 0.82, function(url){
+        var key = ph.dataset.imgkey;
+        var img = document.createElement('img');
+        img.className = 'img-real'; img.src = url;
+        var wrap = document.createElement('div');
+        wrap.className = 'img-wrapper'; wrap.dataset.imgkey = key;
+        wrap.appendChild(img);
+        ph.parentNode.replaceChild(wrap, ph);
+        setVal(key, url);
+        save();
+        var kb = Math.round(url.length * 0.75 / 1024);
+        toast('✅ 이미지 업로드 완료! (' + kb + 'KB)');
+      });
     };
     reader.readAsDataURL(file);
   }
