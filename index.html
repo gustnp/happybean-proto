@@ -495,6 +495,8 @@
         <button class="tb-btn" id="commentModeBtn">💬 코멘트</button>
         <button class="tb-btn" id="commentHideBtn" style="display:none;">핀 숨김</button>
         <button class="tb-btn" id="commentListBtn">📋 코멘트 목록</button>
+        <button class="tb-btn" id="syncPullBtn" title="서버에서 최신 코멘트 가져오기">🔄 동기화</button>
+        <span id="syncStatus" style="font-size:11.5px;color:#16c265;align-self:center;"></span>
         <button class="tb-btn" id="clientShareBtn">🔗 클라이언트 공유</button>
     <button class="tb-btn" onclick="window.print()">인쇄·PDF</button>
     <button class="tb-btn" id="editToggle">✏️ 편집</button>
@@ -2253,12 +2255,72 @@ try{
   ========================================================= */
   (function(){
     var CMT_KEY = 'hb_comments_v1_' + (draft.meta.id || 'default');
+    var BIN_KEY  = 'hb_bin_id_' + (draft.meta.id || 'default');
+    var JKEY     = '$2a$10$Pz6EsZEPeHA0GJYMxl3uEOhBkzmkTND.YzBG9Pc3iR5cxfguB.4lO';
     var commentMode = false;
     var pinsHidden = false;
     var activePopup = null;
+    var _syncing = false;
 
+    /* 로컬 캐시 읽기/쓰기 (동기) */
     function loadComments(){ try{ return JSON.parse(localStorage.getItem(CMT_KEY)||'[]'); }catch(e){ return []; } }
-    function saveComments(arr){ localStorage.setItem(CMT_KEY, JSON.stringify(arr)); }
+    function saveComments(arr){
+      localStorage.setItem(CMT_KEY, JSON.stringify(arr));
+      pushToServer(arr);
+    }
+
+    /* JSONBin 동기화 */
+    function getBinId(){ return localStorage.getItem(BIN_KEY) || null; }
+    function setBinId(id){ localStorage.setItem(BIN_KEY, id); }
+
+    function showSyncStatus(msg, ok){
+      var el = document.getElementById('syncStatus');
+      if(!el) return;
+      el.textContent = msg;
+      el.style.color = ok ? '#16c265' : '#e88';
+      clearTimeout(el._t);
+      el._t = setTimeout(function(){ el.textContent = ''; }, 3000);
+    }
+
+    function pushToServer(arr){
+      if(_syncing) return;
+      _syncing = true;
+      var binId = getBinId();
+      var body  = JSON.stringify({comments: arr});
+      var headers = {
+        'Content-Type': 'application/json',
+        'X-Master-Key': JKEY
+      };
+      if(binId){
+        fetch('https://api.jsonbin.io/v3/b/' + binId, {method:'PUT', headers:headers, body:body})
+          .then(function(r){ _syncing=false; if(r.ok) showSyncStatus('☁ 동기화됨', true); else showSyncStatus('동기화 실패', false); })
+          .catch(function(){ _syncing=false; showSyncStatus('동기화 실패', false); });
+      } else {
+        var h2 = Object.assign({}, headers, {'X-Bin-Name':'hb-cmt-'+(draft.meta.id||'default'), 'X-Bin-Private':'false'});
+        fetch('https://api.jsonbin.io/v3/b', {method:'POST', headers:h2, body:body})
+          .then(function(r){ return r.json(); })
+          .then(function(d){ setBinId(d.metadata.id); _syncing=false; showSyncStatus('☁ 저장됨', true); })
+          .catch(function(){ _syncing=false; showSyncStatus('동기화 실패', false); });
+      }
+    }
+
+    function pullFromServer(cb){
+      var binId = getBinId();
+      if(!binId){ cb && cb(); return; }
+      showSyncStatus('동기화 중…', true);
+      fetch('https://api.jsonbin.io/v3/b/' + binId + '/latest', {
+        headers:{'X-Master-Key': JKEY}
+      })
+        .then(function(r){ return r.json(); })
+        .then(function(d){
+          var arr = (d.record && d.record.comments) || [];
+          localStorage.setItem(CMT_KEY, JSON.stringify(arr));
+          showSyncStatus('☁ 불러옴 ('+arr.length+'개)', true);
+          renderPins();
+          cb && cb();
+        })
+        .catch(function(){ showSyncStatus('서버 연결 실패', false); cb && cb(); });
+    }
 
     function formatTime(iso){
       var d = new Date(iso);
@@ -2434,6 +2496,14 @@ try{
     var cmBtn = document.getElementById('commentModeBtn');
     if(cmBtn) cmBtn.addEventListener('click', function(){ toggleCommentMode(); });
 
+    var syncBtn = document.getElementById('syncPullBtn');
+    if(syncBtn) syncBtn.addEventListener('click', function(){
+      pullFromServer(function(){
+        var panel = document.getElementById('cmtListPanel');
+        // 패널 열려있으면 목록 갱신
+      });
+    });
+
     var hideBtn = document.getElementById('commentHideBtn');
     if(hideBtn) hideBtn.addEventListener('click', function(){
       pinsHidden = !pinsHidden;
@@ -2450,6 +2520,7 @@ try{
 
     /* 초기 렌더 */
     renderPins();
+    pullFromServer(); // 서버에서 최신 코멘트 로드
   })();
 
 
