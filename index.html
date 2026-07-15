@@ -1118,9 +1118,12 @@ try{
         +'<button class="img-btn-del" data-imgkey="'+key+'">🗑 삭제</button>'
         +'</div>' : '')
       +'</div>';
+    var sizeHint = h >= 400 ? '권장: 1920 × '+h+'px 이상' : '권장: 1200 × '+h+'px 이상';
     return '<div class="img-ph" '+k+' style="min-height:'+(h||180)+'px;">'
       +'<div class="img-drop-hint"><div class="ico">🖼</div>'
-      +'<div>'+esc(note||'이미지 영역')+'</div></div></div>';
+      +'<div>'+esc(note||'이미지 영역')+'</div>'
+      +'<div style="margin-top:6px;font-size:11px;opacity:.55;font-family:monospace;">'+sizeHint+'</div>'
+      +'</div></div>';
   }
   function planHtml(tag, txt){
     if(!txt) return '';
