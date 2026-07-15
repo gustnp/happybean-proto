@@ -188,16 +188,10 @@
   .ep-header h3{margin:0;font-size:13px;font-weight:700;color:#fff;}
   .ep-close{background:none;border:none;color:#777;font-size:20px;cursor:pointer;line-height:1;padding:0 4px;}
   .ep-close:hover{color:#fff;}
-  /* 패널 닫혔을 때 재오픈 탭 버튼 */
-  .ep-reopen-btn{position:fixed;right:0;top:50%;transform:translateY(-50%);z-index:299;
-    background:#2f7fd4;color:#fff;border:none;border-radius:8px 0 0 8px;
-    padding:16px 9px;font-size:11.5px;font-weight:700;cursor:pointer;
-    writing-mode:vertical-rl;text-orientation:mixed;
-    box-shadow:-3px 0 10px rgba(0,0,0,.18);transition:background .15s;letter-spacing:.5px;}
-  .ep-reopen-btn:hover{background:#1a6abf;}
-  body.edit-open .ep-reopen-btn{display:none;}
-  body.client-view .ep-reopen-btn{display:none;}
-  @media print{.ep-reopen-btn{display:none!important;}}
+  /* 편집 패널 닫혔을 때: 상단 편집 버튼 강조 애니메이션 */
+  @keyframes ep-pulse{0%{box-shadow:0 0 0 0 rgba(47,127,212,.6);}70%{box-shadow:0 0 0 8px rgba(47,127,212,0);}100%{box-shadow:0 0 0 0 rgba(47,127,212,0);}}
+  body:not(.edit-open):not(.client-view) #editToggle{animation:ep-pulse 1.8s ease-in-out 3;border:1.5px solid #4d9ee0;}
+  body.edit-open #editToggle{animation:none;border:none;}
   .ep-tabs{display:flex;background:#13161a;border-bottom:1px solid #2e3238;flex-shrink:0;}
   .ep-tabs button{flex:1;border:none;background:none;color:#777;font-size:12px;font-weight:700;
     padding:10px 4px;cursor:pointer;border-bottom:2px solid transparent;transition:color .15s,border-color .15s;}
@@ -607,7 +601,6 @@
   <div class="ep-header">
     <h3>✏️ 캠페인 편집</h3>
     <button class="ep-close" id="epClose">✕</button>
-<button id="epReopenBtn" class="ep-reopen-btn">✏ 편집 열기</button>
   </div>
   <div class="ep-tabs">
     <button data-tab="design" class="on">디자인</button>
@@ -1547,10 +1540,6 @@ try{
   document.getElementById('epClose').addEventListener('click', function(){
     editOpen = false;
     setEditPanel(false);
-  });
-  document.getElementById('epReopenBtn').addEventListener('click', function(){
-    editOpen = true;
-    setEditPanel(true);
   });
 
   function setEditPanel(open){
