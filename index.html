@@ -540,6 +540,24 @@
   .approval-summary b{color:#16c265;}
 
 </style>
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+<script>
+(function(){
+  var cfg = {
+    apiKey: "AIzaSyDfrxzDxjAQGqyrzTlgBzWnoUuoG-8N_Fk",
+    authDomain: "happybean-proto.firebaseapp.com",
+    databaseURL: "https://happybean-proto-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "happybean-proto",
+    storageBucket: "happybean-proto.firebasestorage.app",
+    messagingSenderId: "677823008633",
+    appId: "1:677823008633:web:6a6e65abdd620addc1a9a8"
+  };
+  if (!firebase.apps.length) firebase.initializeApp(cfg);
+  window._fdb = firebase.database();
+})();
+</script>
 </head>
 <body class="mode-design">
 
@@ -888,13 +906,21 @@ try{
   var qid = new URLSearchParams(location.search).get('c');
   var C = reg[qid] || reg[ids[0]];
   var storageKey = 'hb_draft_v2_' + C.meta.id;
-  var DRAFT_BIN_KEY  = 'hb_draft_bin_' + C.meta.id;
-  var DRAFT_JKEY     = '$2a$10$Pz6EsZEPeHA0GJYMxl3uEOhBkzmkTND.YzBG9Pc3iR5cxfguB.4lO';
   var _draftSyncing  = false;
   var _draftPushTimer = null;
+  var _lastDraftPushTime = 0; // 자신의 push 에코 무시용
 
-  /* 이미지 포함 전체 저장 (압축 후 업로드) */
-  function stripImages(obj){ return obj; } // 압축 후 이미지 포함 저장
+  /* 이미지 필드 제거 (Firebase 용량 절약) */
+  function stripImages(obj){
+    if(typeof obj === 'string') return obj.indexOf('data:image') === 0 ? '__img_local__' : obj;
+    if(Array.isArray(obj)) return obj.map(stripImages);
+    if(obj && typeof obj === 'object'){
+      var r = {};
+      Object.keys(obj).forEach(function(k){ r[k] = stripImages(obj[k]); });
+      return r;
+    }
+    return obj;
+  }
 
   /* 로컬 이미지 필드만 추출 */
   function extractImages(obj, prefix){
@@ -920,66 +946,64 @@ try{
     return serverDraft;
   }
 
+  function _showDraftStatus(msg, ok){
+    var el = document.getElementById('draftSyncStatus');
+    if(!el) return;
+    el.textContent = msg;
+    el.style.color = ok ? '#16c265' : '#e88';
+    clearTimeout(el._t);
+    el._t = setTimeout(function(){ el.textContent = ''; }, 3000);
+  }
+
   function pushDraftToServer(){
     if(_draftSyncing) return;
     _draftSyncing = true;
-    var payload  = JSON.stringify({ draft: stripImages(clone(draft)) });
-    var binId    = localStorage.getItem(DRAFT_BIN_KEY);
-    var headers  = { 'Content-Type':'application/json', 'X-Master-Key': DRAFT_JKEY };
-    var done = function(){ _draftSyncing = false; };
-    var showS = function(msg, ok){
-      var el = document.getElementById('draftSyncStatus');
-      if(!el) return;
-      el.textContent = msg;
-      el.style.color = ok ? '#16c265' : '#e88';
-      clearTimeout(el._t);
-      el._t = setTimeout(function(){ el.textContent = ''; }, 3000);
-    };
-    if(binId){
-      fetch('https://api.jsonbin.io/v3/b/'+binId, {method:'PUT', headers:headers, body:payload})
-        .then(function(r){ done(); if(r.ok) showS('☁ 드래프트 저장됨', true); else showS('클라우드 저장 실패', false); })
-        .catch(function(){ done(); showS('클라우드 연결 실패', false); });
-    } else {
-      var h2 = Object.assign({}, headers, {'X-Bin-Name':'hb-draft-'+(C.meta.id||'default')});
-      fetch('https://api.jsonbin.io/v3/b', {method:'POST', headers:h2, body:payload})
-        .then(function(r){ return r.json(); })
-        .then(function(d){ localStorage.setItem(DRAFT_BIN_KEY, d.metadata.id); done(); showS('☁ 드래프트 저장됨', true); })
-        .catch(function(){ done(); showS('클라우드 저장 실패', false); });
-    }
+    _lastDraftPushTime = Date.now();
+    var stripped = stripImages(clone(draft));
+    window._fdb.ref('drafts/' + C.meta.id).set(stripped)
+      .then(function(){ _draftSyncing = false; _showDraftStatus('☁ 드래프트 저장됨', true); })
+      .catch(function(){ _draftSyncing = false; _showDraftStatus('클라우드 저장 실패', false); });
   }
 
   function pullDraftFromServer(cb){
-    var binId = localStorage.getItem(DRAFT_BIN_KEY);
-    if(!binId){
-      var el = document.getElementById('draftSyncStatus');
-      if(el){ el.textContent = '클라우드에 저장된 드래프트 없음 (편집 후 자동 저장됩니다)'; el.style.color='#888';
-        clearTimeout(el._t); el._t = setTimeout(function(){ el.textContent=''; }, 4000); }
-      cb && cb(); return;
-    }
-    var showS = function(msg, ok){
-      var el = document.getElementById('draftSyncStatus');
-      if(!el) return;
-      el.textContent = msg;
-      el.style.color = ok ? '#16c265' : '#e88';
-      clearTimeout(el._t);
-      el._t = setTimeout(function(){ el.textContent = ''; }, 3000);
-    };
-    showS('드래프트 불러오는 중…', true);
-    fetch('https://api.jsonbin.io/v3/b/'+binId+'/latest', {headers:{'X-Master-Key': DRAFT_JKEY}})
-      .then(function(r){ return r.json(); })
-      .then(function(d){
-        if(!d.record || !d.record.draft) { cb && cb(); return; }
-        var serverDraft = d.record.draft;
-        // 로컬 이미지 보존
+    _showDraftStatus('드래프트 불러오는 중…', true);
+    window._fdb.ref('drafts/' + C.meta.id).once('value')
+      .then(function(snap){
+        var serverDraft = snap.val();
+        if(!serverDraft){
+          _showDraftStatus('클라우드에 저장된 드래프트 없음 (편집 후 자동 저장됩니다)', false);
+          clearTimeout(document.getElementById('draftSyncStatus') && document.getElementById('draftSyncStatus')._t2);
+          if(document.getElementById('draftSyncStatus'))
+            document.getElementById('draftSyncStatus')._t2 = setTimeout(function(){
+              var el = document.getElementById('draftSyncStatus'); if(el) el.textContent='';
+            }, 4000);
+          cb && cb(); return;
+        }
         var localImgs = extractImages(draft, '');
         draft = restoreImages(serverDraft, localImgs);
         localStorage.setItem(storageKey, JSON.stringify(draft));
         applyTheme(draft.theme);
         render(); syncColorPickers(); buildEpContent(); buildEpSections(); buildEpPlan();
-        showS('☁ 드래프트 불러옴', true);
+        _showDraftStatus('☁ 드래프트 불러옴', true);
         cb && cb();
       })
-      .catch(function(){ showS('클라우드 연결 실패', false); cb && cb(); });
+      .catch(function(){ _showDraftStatus('클라우드 연결 실패', false); cb && cb(); });
+  }
+
+  /* 실시간 리스너 — 다른 사용자가 변경하면 자동 반영 */
+  function initDraftRealtimeSync(){
+    window._fdb.ref('drafts/' + C.meta.id).on('value', function(snap){
+      // 자신의 push 직후 에코는 무시 (3초 이내)
+      if(Date.now() - _lastDraftPushTime < 3000) return;
+      var serverDraft = snap.val();
+      if(!serverDraft) return;
+      var localImgs = extractImages(draft, '');
+      draft = restoreImages(serverDraft, localImgs);
+      localStorage.setItem(storageKey, JSON.stringify(draft));
+      applyTheme(draft.theme);
+      render(); syncColorPickers(); buildEpContent(); buildEpSections(); buildEpPlan();
+      _showDraftStatus('🔄 실시간 동기화됨', true);
+    });
   }
   var draft;
   try {
@@ -2439,7 +2463,7 @@ try{
   updateApprovalSummary();
 
   // 페이지 로드 시 클라우드 드래프트 자동 로드
-  pullDraftFromServer();
+  pullDraftFromServer(function(){ initDraftRealtimeSync(); });
   var _draftPullBtn = document.getElementById('draftPullBtn');
   if(_draftPullBtn) _draftPullBtn.addEventListener('click', function(){ pullDraftFromServer(); });
 
@@ -2612,8 +2636,7 @@ try{
   ========================================================= */
   (function(){
     var CMT_KEY = 'hb_comments_v1_' + (draft.meta.id || 'default');
-    var BIN_KEY  = 'hb_bin_id_' + (draft.meta.id || 'default');
-    var JKEY     = '$2a$10$Pz6EsZEPeHA0GJYMxl3uEOhBkzmkTND.YzBG9Pc3iR5cxfguB.4lO';
+    var _cmtLastPushTime = 0;
     var commentMode = false;
     var pinsHidden = false;
     var activePopup = null;
@@ -2626,10 +2649,7 @@ try{
       pushToServer(arr);
     }
 
-    /* JSONBin 동기화 */
-    function getBinId(){ return localStorage.getItem(BIN_KEY) || null; }
-    function setBinId(id){ localStorage.setItem(BIN_KEY, id); }
-
+    /* Firebase 동기화 */
     function showSyncStatus(msg, ok){
       var el = document.getElementById('syncStatus');
       if(!el) return;
@@ -2642,41 +2662,36 @@ try{
     function pushToServer(arr){
       if(_syncing) return;
       _syncing = true;
-      var binId = getBinId();
-      var body  = JSON.stringify({comments: arr});
-      var headers = {
-        'Content-Type': 'application/json',
-        'X-Master-Key': JKEY
-      };
-      if(binId){
-        fetch('https://api.jsonbin.io/v3/b/' + binId, {method:'PUT', headers:headers, body:body})
-          .then(function(r){ _syncing=false; if(r.ok) showSyncStatus('☁ 동기화됨', true); else showSyncStatus('동기화 실패', false); })
-          .catch(function(){ _syncing=false; showSyncStatus('동기화 실패', false); });
-      } else {
-        var h2 = Object.assign({}, headers, {'X-Bin-Name':'hb-cmt-'+(draft.meta.id||'default'), 'X-Bin-Private':'false'});
-        fetch('https://api.jsonbin.io/v3/b', {method:'POST', headers:h2, body:body})
-          .then(function(r){ return r.json(); })
-          .then(function(d){ setBinId(d.metadata.id); _syncing=false; showSyncStatus('☁ 저장됨', true); })
-          .catch(function(){ _syncing=false; showSyncStatus('동기화 실패', false); });
-      }
+      _cmtLastPushTime = Date.now();
+      window._fdb.ref('comments/' + (draft.meta.id || 'default')).set(arr)
+        .then(function(){ _syncing = false; showSyncStatus('☁ 동기화됨', true); })
+        .catch(function(){ _syncing = false; showSyncStatus('동기화 실패', false); });
     }
 
     function pullFromServer(cb){
-      var binId = getBinId();
-      if(!binId){ cb && cb(); return; }
       showSyncStatus('동기화 중…', true);
-      fetch('https://api.jsonbin.io/v3/b/' + binId + '/latest', {
-        headers:{'X-Master-Key': JKEY}
-      })
-        .then(function(r){ return r.json(); })
-        .then(function(d){
-          var arr = (d.record && d.record.comments) || [];
+      window._fdb.ref('comments/' + (draft.meta.id || 'default')).once('value')
+        .then(function(snap){
+          var arr = snap.val() || [];
+          if(!Array.isArray(arr)) arr = Object.values(arr);
           localStorage.setItem(CMT_KEY, JSON.stringify(arr));
-          showSyncStatus('☁ 불러옴 ('+arr.length+'개)', true);
+          showSyncStatus('☁ 불러옴 (' + arr.length + '개)', true);
           renderPins();
           cb && cb();
         })
         .catch(function(){ showSyncStatus('서버 연결 실패', false); cb && cb(); });
+    }
+
+    /* 실시간 코멘트 리스너 */
+    function initCommentRealtimeSync(){
+      window._fdb.ref('comments/' + (draft.meta.id || 'default')).on('value', function(snap){
+        if(Date.now() - _cmtLastPushTime < 3000) return; // 자신의 push 에코 무시
+        var arr = snap.val() || [];
+        if(!Array.isArray(arr)) arr = Object.values(arr);
+        localStorage.setItem(CMT_KEY, JSON.stringify(arr));
+        renderPins();
+        showSyncStatus('🔄 코멘트 실시간 동기화', true);
+      });
     }
 
     function formatTime(iso){
@@ -2874,7 +2889,7 @@ try{
 
     /* 초기 렌더 */
     renderPins();
-    pullFromServer(); // 서버에서 최신 코멘트 로드
+    pullFromServer(function(){ initCommentRealtimeSync(); }); // 서버에서 최신 코멘트 로드 후 실시간 리스너 등록
   })();
 
 
