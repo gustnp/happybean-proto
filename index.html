@@ -48,6 +48,12 @@
   .img-drop-hint{display:flex;flex-direction:column;align-items:center;gap:8px;pointer-events:none;}
   .img-drop-hint .ico{font-size:28px;}
   .img-real{border-radius:16px;width:100%;display:block;}
+  .img-wrapper{position:relative;display:block;}
+  .img-edit-bar{position:absolute;top:10px;right:10px;display:none;gap:6px;z-index:5;}
+  .img-wrapper:hover .img-edit-bar{display:flex;}
+  .img-edit-bar button{background:rgba(0,0,0,.65);color:#fff;border:none;border-radius:6px;
+    font-size:12px;font-weight:700;padding:5px 11px;cursor:pointer;transition:background .1s;}
+  .img-edit-bar button:hover{background:rgba(0,0,0,.9);}
   .b-hero .img-wrapper{margin-top:32px;}
   .b-hero .img-wrapper .img-real{border-radius:0;width:100%;max-height:520px;object-fit:cover;}
   .b-hero .img-ph{border-radius:0;margin-top:32px;min-height:480px;border-left:none;border-right:none;border-radius:0;}
@@ -182,6 +188,16 @@
   .ep-header h3{margin:0;font-size:13px;font-weight:700;color:#fff;}
   .ep-close{background:none;border:none;color:#777;font-size:20px;cursor:pointer;line-height:1;padding:0 4px;}
   .ep-close:hover{color:#fff;}
+  /* 패널 닫혔을 때 재오픈 탭 버튼 */
+  .ep-reopen-btn{position:fixed;right:0;top:50%;transform:translateY(-50%);z-index:299;
+    background:#2f7fd4;color:#fff;border:none;border-radius:8px 0 0 8px;
+    padding:16px 9px;font-size:11.5px;font-weight:700;cursor:pointer;
+    writing-mode:vertical-rl;text-orientation:mixed;
+    box-shadow:-3px 0 10px rgba(0,0,0,.18);transition:background .15s;letter-spacing:.5px;}
+  .ep-reopen-btn:hover{background:#1a6abf;}
+  body.edit-open .ep-reopen-btn{display:none;}
+  body.client-view .ep-reopen-btn{display:none;}
+  @media print{.ep-reopen-btn{display:none!important;}}
   .ep-tabs{display:flex;background:#13161a;border-bottom:1px solid #2e3238;flex-shrink:0;}
   .ep-tabs button{flex:1;border:none;background:none;color:#777;font-size:12px;font-weight:700;
     padding:10px 4px;cursor:pointer;border-bottom:2px solid transparent;transition:color .15s,border-color .15s;}
@@ -591,6 +607,7 @@
   <div class="ep-header">
     <h3>✏️ 캠페인 편집</h3>
     <button class="ep-close" id="epClose">✕</button>
+<button id="epReopenBtn" class="ep-reopen-btn">✏ 편집 열기</button>
   </div>
   <div class="ep-tabs">
     <button data-tab="design" class="on">디자인</button>
@@ -1481,6 +1498,33 @@ try{
         var wrap = document.createElement('div');
         wrap.className = 'img-wrapper'; wrap.dataset.imgkey = key;
         wrap.appendChild(img);
+        // 이미지 편집 오버레이 버튼
+        var bar = document.createElement('div');
+        bar.className = 'img-edit-bar';
+        var btnChange = document.createElement('button');
+        btnChange.textContent = '🖼 변경';
+        btnChange.onclick = function(){
+          var inp2 = document.createElement('input');
+          inp2.type='file'; inp2.accept='image/*';
+          inp2.onchange = function(){ if(inp2.files[0]){ var tmpPh = document.createElement('div'); tmpPh.dataset.imgkey=key; readImg(inp2.files[0], tmpPh); wrap.parentNode.replaceChild(tmpPh, wrap); } };
+          inp2.click();
+        };
+        var btnDel = document.createElement('button');
+        btnDel.textContent = '🗑 삭제';
+        btnDel.style.background = 'rgba(200,40,40,.75)';
+        btnDel.onclick = function(){
+          if(!confirm('이미지를 삭제할까요?')) return;
+          var newPh = document.createElement('div');
+          newPh.className='img-ph droppable'; newPh.dataset.imgkey=key;
+          var ph_h = key==='hero.image'?480:240;
+          newPh.style.minHeight = ph_h+'px';
+          newPh.innerHTML='<div class="img-drop-hint"><div class="ico">🖼</div><div>클릭하여 이미지 업로드</div></div>';
+          wrap.parentNode.replaceChild(newPh, wrap);
+          setVal(key, null); save(); bindImgDrop(newPh);
+          toast('이미지 삭제됨');
+        };
+        bar.appendChild(btnChange); bar.appendChild(btnDel);
+        wrap.appendChild(bar);
         ph.parentNode.replaceChild(wrap, ph);
         setVal(key, url);
         save();
@@ -1503,6 +1547,10 @@ try{
   document.getElementById('epClose').addEventListener('click', function(){
     editOpen = false;
     setEditPanel(false);
+  });
+  document.getElementById('epReopenBtn').addEventListener('click', function(){
+    editOpen = true;
+    setEditPanel(true);
   });
 
   function setEditPanel(open){
@@ -1779,6 +1827,11 @@ try{
     var el = document.getElementById('epContent');
     if(!el) return;
     var d = draft, html = '';
+    // 콩(bean) 안내 배너
+    html += '<div style="background:#1d2635;border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:11.5px;color:#8a9ab0;line-height:1.6;">'
+      +'🫘 <b style="color:#c8d4e0;">콩 텍스트</b>는 해피빈 미션 완료 시 참여자에게 지급되는 보상 안내 문구입니다.<br>'
+      +'예: <i>미션 완료 시 콩 1개</i> / <i>댓글 작성 후 콩 1개 지급</i>'
+      +'</div>';
     function row(label, key, multi){
       var v = esc(getVal(key)||'');
       if(multi) return '<div class="ep-row"><label>'+label+'</label><textarea data-epkey="'+key+'">'+v+'</textarea></div>';
@@ -1806,7 +1859,12 @@ try{
         });
       }
       if(m.cta!==undefined)      html += row('CTA 버튼','missions.'+i+'.cta');
-      if(m.bean!==undefined)     html += row('콩 텍스트','missions.'+i+'.bean');
+      if(m.bean!==undefined)     html += row('콩 텍스트 🫘','missions.'+i+'.bean');
+      // 인라인 기획 메모
+      html += '<div class="ep-row" style="border-top:1px dashed #2a3040;margin-top:4px;padding-top:8px;">'
+        +'<label style="color:#7a8a9a;font-size:11px;">📝 기획 메모 <span style="opacity:.6;">(내부용·클라이언트 비공개)</span></label>'
+        +'<textarea data-epkey="missions.'+i+'.plan" style="min-height:54px;font-size:12px;color:#bbc4ce;">'
+        +esc(m.plan||'')+'</textarea></div>';
       html += '</div>';
     });
     if(d.sns)      html += '<div class="ep-group"><div class="ep-group-label">SNS 밴드</div>'+row('카피','sns.copy')+'</div>';
@@ -2224,6 +2282,15 @@ try{
       return '<div class="ep-row"><label>필요 에셋 (줄바꿈으로 구분)</label>'
         +'<textarea data-plan-assets="'+key+'" style="min-height:58px;">'+esc(v)+'</textarea></div>';
     }
+
+    // 클라이언트 필수 요구사항
+    html += '<div class="ep-group" style="border-color:#c0392b;">'
+      +'<div class="ep-group-label" style="color:#e05050;">🚩 클라이언트 필수 요구사항</div>'
+      +'<div class="ep-row"><label>필수 조건 <span style="color:#666;font-size:10px;">(반드시 지켜야 할 사항, 한 줄씩 입력)</span></label>'
+      +'<textarea data-epkey="meta.clientMust" style="min-height:90px;font-size:12.5px;">'
+      +esc((d.meta&&d.meta.clientMust)||'')+'</textarea></div>'
+      +'<div style="font-size:11px;color:#666;padding:2px 4px 8px;">예: 노란색 배경 금지 / 오른쪽 상단 플로팅 네비게이션 필수 / 로고 1.5배 이상 크기 사용</div>'
+      +'</div>';
 
     // 히어로
     html += '<div class="ep-group"><div class="ep-group-label">히어로 — 기획·스펙</div>'
