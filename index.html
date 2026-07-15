@@ -1268,6 +1268,7 @@ try{
                concept:'이 캠페인 전용 인터랙션',bean:'',cta:''},
     mbti:     {type:'mbti',band:'band1',title:'나의 대중교통 라이프스타일 MBTI',
                sub:'대중교통 이용 습관으로 알아보는 나만의 이동 유형',
+               intro:'버스 탈 때도 성격이 나오고, 지하철 기다릴 때도 취향이 드러납니다.\n문 앞에 설지, 창가를 고를지, 환승 2번을 감수할지, 조금 돌아가더라도 편한 길을 택할지.\n\n이 테스트는 대중교통 이용 시 자연스럽게 드러나는 나만의 라이프스타일을 알아보는 테스트입니다. 그리고 그 안에 슬쩍 숨어 있는 나의 배려 방식도 함께 확인할 수 있어요.\n\n정답은 없습니다. 그냥 제일 나다운 쪽을 고르면 됩니다.',
                bean:'미션 완료 시 콩 1개',cta:'결과 공유하기'}
   };
 
@@ -1423,7 +1424,7 @@ try{
         +'<div class="mbti-quiz" data-mbti-midx="'+i+'" data-mbti-qs=\''+qData.replace(/\'/g,'&#39;')+'\' data-mbti-types=\''+typeData.replace(/\'/g,'&#39;')+'\'>'
         +'<div class="mbti-screen mbti-start-screen">'
         +'<div class="mbti-start-label">🚇 대중교통 라이프스타일 테스트</div>'
-        +'<div class="mbti-intro-text">버스 탈 때도 성격이 나오고, 지하철 기다릴 때도 취향이 드러납니다.\n문 앞에 설지, 창가를 고를지, 환승 2번을 감수할지, 조금 돌아가더라도 편한 길을 택할지.\n\n이 테스트는 대중교통 이용 시 자연스럽게 드러나는 나만의 라이프스타일을 알아보는 테스트입니다. 그리고 그 안에 슬쩍 숨어 있는 나의 배려 방식도 함께 확인할 수 있어요.\n\n정답은 없습니다. 그냥 제일 나다운 쪽을 고르면 됩니다.</div>'
+        +'<div class="mbti-intro-text"'+edAttr('missions.'+i+'.intro')+'>'+pre(m.intro||'')+'</div>'
         +'<button class="pill-btn mbti-start-btn" style="font-size:16px;padding:16px 36px;">테스트 시작하기 →</button>'
         +'</div></div>'
         +(m.bean?'<div><span class="bean">'+esc(m.bean)+'</span></div>':'')
@@ -2144,6 +2145,7 @@ try{
       html += '<div class="ep-group"><div class="ep-group-label">미션 '+(i+1)+' ('+m.type+')</div>';
       if(m.title!==undefined)    html += row('제목','missions.'+i+'.title',true);
       if(m.sub!==undefined)      html += row('서브','missions.'+i+'.sub',true);
+      if(m.intro!==undefined)    html += row('인트로 텍스트','missions.'+i+'.intro',true);
       if(m.head!==undefined)     html += row('헤드','missions.'+i+'.head',true);
       if(m.section!==undefined)  html += row('섹션 제목','missions.'+i+'.section',true);
       if(m.question!==undefined) html += row('질문','missions.'+i+'.question',true);
