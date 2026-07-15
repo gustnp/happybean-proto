@@ -122,6 +122,39 @@
   .mbti-retry-btn{font-size:13px;color:var(--sub);background:none;border:1px solid var(--line);
     border-radius:12px;padding:8px 18px;cursor:pointer;margin-top:8px;}
   .mbti-retry-btn:hover{border-color:var(--primary);color:var(--primary);}
+  /* ── 투표 컴포넌트 ──────────────────────────────────── */
+  .vote-opts{display:flex;flex-direction:column;gap:10px;max-width:580px;margin:28px auto 0;}
+  .vote-opt{display:flex;align-items:center;gap:14px;background:#fff;border:1.5px solid var(--line);
+    border-radius:16px;padding:16px 20px;cursor:pointer;text-align:left;
+    transition:border-color .15s,background .15s,transform .1s;}
+  .vote-opt:hover{border-color:var(--primary);background:#f8fbff;transform:translateY(-1px);}
+  .vote-opt.selected{border-color:var(--primary);background:#f0f5ff;box-shadow:0 0 0 2px var(--primary);}
+  .vote-opt.voted{border-color:#16c265;background:#f0faf5;cursor:default;}
+  .vote-opt.disabled{pointer-events:none;opacity:.7;}
+  .vote-opt-ico{font-size:24px;flex:none;width:44px;text-align:center;}
+  .vote-opt-label{font-size:15px;font-weight:700;color:var(--ink);}
+  .vote-check{margin-left:auto;font-size:18px;opacity:0;transition:opacity .2s;}
+  .vote-opt.selected .vote-check{opacity:1;}
+  .vote-opt.voted .vote-check{opacity:1;color:#16c265;}
+  .vote-total{font-size:13px;color:var(--sub);margin-top:8px;}
+  /* 결과 발표 */
+  .vote-results{max-width:580px;margin:28px auto 0;display:flex;flex-direction:column;gap:14px;}
+  .vote-res-row{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px 20px;}
+  .vote-res-row.winner{border-color:var(--primary);background:#f0f5ff;}
+  .vote-res-top{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+  .vote-res-ico{font-size:22px;flex:none;}
+  .vote-res-label{font-size:14.5px;font-weight:700;color:var(--ink);flex:1;}
+  .vote-res-pct{font-size:13px;font-weight:800;color:var(--primary);flex:none;}
+  .vote-bar-wrap{height:8px;background:var(--band1);border-radius:4px;overflow:hidden;}
+  .vote-bar-fill{height:100%;background:var(--primary);border-radius:4px;transition:width .8s ease;}
+  .vote-res-count{font-size:12px;color:var(--sub);margin-top:6px;text-align:right;}
+  .vote-winner-badge{display:inline-flex;align-items:center;gap:8px;background:var(--primary);
+    color:#fff;border-radius:14px;padding:8px 20px;font-size:14px;font-weight:800;margin-top:20px;}
+  .vote-mode-tag{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.06em;
+    padding:4px 10px;border-radius:8px;margin-bottom:14px;}
+  .vote-mode-tag.open{background:#e8f5e9;color:#2e7d32;}
+  .vote-mode-tag.closed{background:#e3f2fd;color:#1565c0;}
+
 
   .cards-3{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;}
   .chan-card{background:#fff;border:1px solid var(--line);border-radius:18px;
@@ -1244,7 +1277,8 @@ try{
     {type:'cta',      ico:'👆', name:'행동 유도 CTA', desc:'버튼만 있는 단락'},
     {type:'video',    ico:'▶️', name:'영상 임베드',   desc:'동영상 플레이스홀더'},
     {type:'custom',   ico:'✨', name:'커스텀',        desc:'자유 형식 인터랙션'},
-    {type:'mbti',     ico:'🚇', name:'MBTI 테스트',   desc:'대중교통 라이프스타일 유형'}
+    {type:'mbti',     ico:'🚇', name:'MBTI 테스트',   desc:'대중교통 라이프스타일 유형'},
+    {type:'vote',     ico:'🗳', name:'주제 투표',     desc:'투표 → 결과 발표 전환'}
   ];
   var MISSION_DEFAULTS = {
     quiz:     {type:'quiz',band:'band1',section:'참여 퀴즈',question:'질문을 입력하세요',
@@ -1266,6 +1300,18 @@ try{
                videoNote:'유튜브 URL을 입력하세요',bean:'',cta:'영상 보고 참여하기'},
     custom:   {type:'custom',band:'',title:'커스텀 미션',sub:'',
                concept:'이 캠페인 전용 인터랙션',bean:'',cta:''},
+    vote:     {type:'vote',band:'band1',title:'미래 교통, 어떤 모습이길 바라나요?',
+               sub:'당신의 선택이 미래를 만듭니다. 하나만 골라주세요.',
+               mode:'vote',
+               options:[
+                 {ico:'🚂',label:'하늘을 달리는 기차'},
+                 {ico:'🤖',label:'AI가 감정을 읽는 맞춤 이동 서비스'},
+                 {ico:'♿',label:'완전한 배리어프리 이동 도시'},
+                 {ico:'🌿',label:'친환경 자율주행 버스'},
+                 {ico:'🌊',label:'수상 이동 교통'},
+                 {ico:'🚀',label:'우주로 연결되는 지하철'}
+               ],
+               bean:'투표 완료 시 콩 1개',cta:'투표하기'},
     mbti:     {type:'mbti',band:'band1',title:'나의 대중교통 라이프스타일 MBTI',
                sub:'대중교통 이용 습관으로 알아보는 나만의 이동 유형',
                intro:'버스 탈 때도 성격이 나오고, 지하철 기다릴 때도 취향이 드러납니다.\n문 앞에 설지, 창가를 고를지, 환승 2번을 감수할지, 조금 돌아가더라도 편한 길을 택할지.\n\n이 테스트는 대중교통 이용 시 자연스럽게 드러나는 나만의 라이프스타일을 알아보는 테스트입니다. 그리고 그 안에 슬쩍 숨어 있는 나의 배려 방식도 함께 확인할 수 있어요.\n\n정답은 없습니다. 그냥 제일 나다운 쪽을 고르면 됩니다.',
@@ -1373,6 +1419,51 @@ try{
         +'<div class="img-ph" style="min-height:260px;">[커스텀 미션] '+esc(m.concept||'이 캠페인 전용 인터랙션')+'</div>'
         +(m.bean?'<div><span class="bean">'+esc(m.bean)+'</span></div>':'')
         +(m.cta?'<div><button class="pill-btn cta-btn" data-bean="'+esc(m.bean||'')+'" data-midx="'+i+'">'+esc(m.cta)+'</button></div>':'')
+        +'</div></section>';
+    },
+    vote: function(m, i){
+      var opts = m.options || [];
+      var isResult = m.mode === 'result';
+      var optHtml = '';
+      if(isResult){
+        // 결과 발표 모드 (실제 집계는 bindVoteHandlers에서 Firebase 로드)
+        optHtml = '<div class="vote-results" id="voteRes_'+i+'">'
+          + opts.map(function(opt, oi){
+              return '<div class="vote-res-row" id="voteResRow_'+i+'_'+oi+'">'
+                +'<div class="vote-res-top">'
+                +'<span class="vote-res-ico">'+esc(opt.ico||'')+'</span>'
+                +'<span class="vote-res-label">'+esc(opt.label||'')+'</span>'
+                +'<span class="vote-res-pct" id="vpct_'+i+'_'+oi+'">--%</span>'
+                +'</div>'
+                +'<div class="vote-bar-wrap"><div class="vote-bar-fill" id="vbar_'+i+'_'+oi+'" style="width:0%"></div></div>'
+                +'<div class="vote-res-count" id="vcnt_'+i+'_'+oi+'">집계 중...</div>'
+                +'</div>';
+            }).join('')
+          + '<div class="vote-winner-badge" id="vwinner_'+i+'" style="display:none"></div>'
+          + '</div>';
+      } else {
+        // 투표 모드
+        optHtml = '<div class="vote-opts" id="voteOpts_'+i+'">'
+          + opts.map(function(opt, oi){
+              return '<div class="vote-opt" data-midx="'+i+'" data-optidx="'+oi+'">'
+                +'<span class="vote-opt-ico">'+esc(opt.ico||'')+'</span>'
+                +'<span class="vote-opt-label">'+esc(opt.label||'')+'</span>'
+                +'<span class="vote-check">✓</span>'
+                +'</div>';
+            }).join('')
+          + '</div>'
+          + '<div style="margin-top:20px;">'
+          + '<button class="pill-btn vote-submit-btn" data-midx="'+i+'" data-selected="-1" disabled style="opacity:.5;">'+esc(m.cta||'투표하기')+'</button>'
+          + '</div>';
+      }
+      return '<section class="band '+bandCls(m.band)+'" data-section="missions.'+i+'">'
+        +missionBar(m,i)
+        +'<div class="container center stack">'
+        +'<span class="vote-mode-tag '+(isResult?'closed':'open')+'">'+(isResult?'📊 결과 발표':'🗳 투표 진행 중')+'</span>'
+        +(m.title?'<div class="h2 pre"'+edAttr('missions.'+i+'.title')+'>'+pre(m.title)+'</div>':'')
+        +(m.sub?'<div class="lead pre"'+edAttr('missions.'+i+'.sub')+'>'+pre(m.sub)+'</div>':'')
+        + optHtml
+        +(m.bean?'<div style="margin-top:20px;"><span class="bean">'+esc(m.bean)+'</span></div>':'')
         +'</div></section>';
     },
     mbti: function(m, i){
@@ -1681,6 +1772,82 @@ try{
     });
     /* ── MBTI 핸들러 끝 ─── */
 
+    /* ── 투표 컴포넌트 이벤트 핸들러 ─── */
+    // 투표 옵션 선택
+    document.querySelectorAll('.vote-opt').forEach(function(opt){
+      var midx = +opt.dataset.midx;
+      var voteKey = 'hb_voted_' + draft.meta.id + '_m' + midx;
+      if(localStorage.getItem(voteKey) !== null){
+        // 이미 투표함 → disable
+        var wrap = opt.closest('.vote-opts');
+        if(wrap) wrap.querySelectorAll('.vote-opt').forEach(function(o){ o.classList.add('disabled'); });
+        var btn = document.querySelector('.vote-submit-btn[data-midx="'+midx+'"]');
+        if(btn){ btn.textContent='✓ 투표 완료'; btn.disabled=true; btn.style.opacity='1'; }
+        return;
+      }
+      opt.addEventListener('click', function(){
+        var wrap = opt.closest('.vote-opts');
+        wrap.querySelectorAll('.vote-opt').forEach(function(o){ o.classList.remove('selected'); });
+        opt.classList.add('selected');
+        var btn = document.querySelector('.vote-submit-btn[data-midx="'+midx+'"]');
+        if(btn){ btn.disabled=false; btn.style.opacity='1'; btn.dataset.selected=opt.dataset.optidx; }
+      });
+    });
+    // 투표 제출
+    document.querySelectorAll('.vote-submit-btn').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        if(btn.disabled) return;
+        var midx = +btn.dataset.midx;
+        var selIdx = +btn.dataset.selected;
+        if(selIdx < 0) return;
+        var voteKey = 'hb_voted_' + draft.meta.id + '_m' + midx;
+        if(localStorage.getItem(voteKey) !== null){ toast('이미 투표하셨습니다!'); return; }
+        // Firebase increment
+        if(window._fdb){
+          window._fdb.ref('votes/'+draft.meta.id+'/m'+midx+'/o'+selIdx)
+            .transaction(function(v){ return (v||0)+1; });
+        }
+        localStorage.setItem(voteKey, String(selIdx));
+        toast('🌱 투표 완료! 콩 1개 적립!', 'bean');
+        // UI 업데이트
+        var opts = document.querySelectorAll('.vote-opt[data-midx="'+midx+'"]');
+        opts.forEach(function(o){ o.classList.remove('selected'); o.classList.add('disabled'); });
+        opts[selIdx] && opts[selIdx].classList.add('voted');
+        btn.textContent = '✓ 투표 완료'; btn.disabled = true; btn.style.opacity='1';
+      });
+    });
+    // 결과 발표 모드: Firebase에서 집계 로드
+    document.querySelectorAll('[id^="voteRes_"]').forEach(function(el){
+      var midx = +el.id.replace('voteRes_','');
+      var m = (draft.missions||[])[midx];
+      if(!m || !m.options) return;
+      var opts = m.options;
+      if(!window._fdb) return;
+      window._fdb.ref('votes/'+draft.meta.id+'/m'+midx).once('value').then(function(snap){
+        var data = snap.val() || {};
+        var counts = opts.map(function(_,oi){ return data['o'+oi]||0; });
+        var total = counts.reduce(function(s,c){ return s+c; },0);
+        var maxCount = total > 0 ? Math.max.apply(null,counts) : 0;
+        counts.forEach(function(count, oi){
+          var pct = total > 0 ? Math.round(count/total*100) : 0;
+          var bar = document.getElementById('vbar_'+midx+'_'+oi);
+          var pctEl = document.getElementById('vpct_'+midx+'_'+oi);
+          var cntEl = document.getElementById('vcnt_'+midx+'_'+oi);
+          var rowEl = document.getElementById('voteResRow_'+midx+'_'+oi);
+          if(bar) bar.style.width = pct+'%';
+          if(pctEl) pctEl.textContent = pct+'%';
+          if(cntEl) cntEl.textContent = total>0 ? count.toLocaleString()+'명' : '아직 집계된 투표가 없습니다';
+          if(rowEl && total>0 && count===maxCount) rowEl.classList.add('winner');
+        });
+        if(total > 0){
+          var winnerIdx = counts.indexOf(maxCount);
+          var wEl = document.getElementById('vwinner_'+midx);
+          if(wEl){ wEl.textContent='🏆 1위: '+(opts[winnerIdx].ico||'')+' '+opts[winnerIdx].label; wEl.style.display='inline-flex'; }
+        }
+      });
+    });
+    /* ── 투표 핸들러 끝 ─── */
+
     document.querySelectorAll('.cta-btn').forEach(function(btn){
       btn.addEventListener('click', function(){
         if(btn.disabled) return;
@@ -1809,6 +1976,14 @@ try{
      7. 인라인 편집
   ========================================================= */
   var editOpen = false;
+
+  window._switchVoteMode = function(idx, mode){
+    if(!draft.missions[idx]) return;
+    draft.missions[idx].mode = mode;
+    localStorage.setItem(storageKey, JSON.stringify(draft));
+    render(); buildEpContent(); buildEpSections();
+    if(window.pushDraftToServer) pushDraftToServer();
+  };
 
   document.getElementById('editToggle').addEventListener('click', function(){
     editOpen = !editOpen;
@@ -2149,6 +2324,17 @@ try{
       if(m.head!==undefined)     html += row('헤드','missions.'+i+'.head',true);
       if(m.section!==undefined)  html += row('섹션 제목','missions.'+i+'.section',true);
       if(m.question!==undefined) html += row('질문','missions.'+i+'.question',true);
+      // 투표 모드 전환 + 옵션 편집
+      if(m.type==='vote'){
+        var isRes = m.mode==='result';
+        html += '<div style="display:flex;gap:8px;margin:4px 0 12px;">'
+          +'<button onclick="window._switchVoteMode('+i+','vote')" style="flex:1;padding:9px 6px;border-radius:8px;cursor:pointer;font-size:12.5px;font-weight:700;border:1.5px solid '+(isRes?'rgba(255,255,255,.15)':'var(--primary)')+';background:'+(isRes?'transparent':'var(--primary)')+';color:'+(isRes?'rgba(255,255,255,.45)':'#fff')+';">🗳 투표 중</button>'
+          +'<button onclick="window._switchVoteMode('+i+','result')" style="flex:1;padding:9px 6px;border-radius:8px;cursor:pointer;font-size:12.5px;font-weight:700;border:1.5px solid '+(isRes?'var(--primary)':'rgba(255,255,255,.15)')+';background:'+(isRes?'var(--primary)':'transparent')+';color:'+(isRes?'#fff':'rgba(255,255,255,.45)')+';">📊 결과 발표</button>'
+          +'</div>';
+        (m.options||[]).forEach(function(opt,oi){
+          html += row('옵션 '+(oi+1)+' '+esc(opt.ico||''), 'missions.'+i+'.options.'+oi+'.label', true);
+        });
+      }
       // 퀴즈 보기 항목 편집
       if(m.type==='quiz' && m.answers){
         (m.answers).forEach(function(a, ai){
