@@ -1051,38 +1051,23 @@ window._campaignReady = (function(){
         return;
       }
 
-      // Firebase 5초 timeout fallback
-      var _fbResolved = false;
-      function _fbFallback(){
-        if(_fbResolved) return;
-        _fbResolved = true;
-        console.warn('[loader] Firebase timeout → 빈 캠페인으로 대체');
-        window.CAMPAIGNS = window.CAMPAIGNS || {};
-        window.CAMPAIGNS[qid] = makeBlankTpl();
-        resolve();
+      // 즉시 빈 템플릿으로 로드 (Firebase 블로킹 없음)
+      console.log('[loader] 새 캠페인 즉시 생성:', qid);
+      window.CAMPAIGNS = window.CAMPAIGNS || {};
+      window.CAMPAIGNS[qid] = makeBlankTpl();
+      resolve();
+      // Firebase에 비동기 저장 (로드 이후 백그라운드)
+      if(window._fdb){
+        window._fdb.ref('campaign_base/' + qid).once('value').then(function(snap){
+          var data = snap.val();
+          if(data && window.CAMPAIGNS[qid]){
+            // Firebase에 저장된 템플릿이 있으면 병합 (이미 render된 이후)
+            console.log('[loader] Firebase 기존 데이터 발견 (이미 로드됨):', qid);
+          } else if(!data){
+            try{ window._fdb.ref('campaign_base/' + qid).set(window.CAMPAIGNS[qid]); }catch(e){}
+          }
+        }).catch(function(){});
       }
-      var _fbTimer = setTimeout(_fbFallback, 5000);
-
-      window._fdb.ref('campaign_base/' + qid).once('value').then(function(snap){
-        clearTimeout(_fbTimer);
-        if(_fbResolved) return;
-        _fbResolved = true;
-        console.log('[loader] Firebase 로드 성공:', qid);
-        window.CAMPAIGNS = window.CAMPAIGNS || {};
-        var data = snap.val();
-        if(data){
-          window.CAMPAIGNS[qid] = data;
-        } else {
-          var tpl = makeBlankTpl();
-          window.CAMPAIGNS[qid] = tpl;
-          try{ window._fdb.ref('campaign_base/' + qid).set(tpl); }catch(e){}
-        }
-        resolve();
-      }).catch(function(err){
-        clearTimeout(_fbTimer);
-        console.warn('[loader] Firebase 에러:', err);
-        _fbFallback();
-      });
     };
     document.head.appendChild(s);
   });
