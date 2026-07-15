@@ -660,7 +660,6 @@
     <div class="ep-group">
       <div class="ep-group-label">저장 · 내보내기</div>
       <button class="ep-export-btn" id="exportBtn">↓ campaign JS 다운로드</button>
-      <button class="ep-export-btn" id="exportHtmlBtn" style="margin-top:6px;background:#3a5a8a;">↓ 공유용 HTML 다운로드</button>
       <div class="ep-note" id="epNote">변경사항은 브라우저에 자동 저장됩니다</div>
       <button class="ep-new-campaign" id="newCampaignBtn">+ 새 캠페인 시작</button>
     </div>
@@ -2004,22 +2003,7 @@ try{
     saveSnapshot('Export — '+new Date().toLocaleString('ko-KR'));
   });
 
-  /* =========================================================
-     14. Export 공유용 HTML
-  ========================================================= */
-  document.getElementById('exportHtmlBtn').addEventListener('click', function(){
-    var html2 = document.documentElement.outerHTML;
-    var inlineData = '<script>window.CAMPAIGNS=window.CAMPAIGNS||{};window.CAMPAIGNS["'
-      +draft.meta.id+'"]='+JSON.stringify(draft)+';<\/script>';
-    html2 = html2.replace(/<script src="campaigns\/[^"]*"><\/script>/, inlineData);
-    html2 = html2.replace('.topbar{position:sticky', '.topbar{display:none!important;position:sticky');
-    var blob = new Blob([html2], {type:'text/html;charset=utf-8'});
-    var a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = draft.meta.id+'_share.html';
-    a.click();
-    toast('공유용 HTML 다운로드됨');
-  });
+
 
   /* =========================================================
      15. 모드 토글
