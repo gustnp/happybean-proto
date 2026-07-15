@@ -932,17 +932,62 @@ window.CAMPAIGNS["kookmincall110"] = {
 
 </script>
 <script>
-/* ?c= 파라미터로 다른 캠페인 로드 (실제 브라우저 + HTTP 환경에서만 동작) */
-(function(){
+/* 캠페인 로더 — JS 파일 없으면 Firebase에서 생성 */
+window._campaignReady = (function(){
   var qid = new URLSearchParams(location.search).get('c');
-  if(qid && qid !== 'kookmincall110' && location.protocol !== 'about:') {
+  var reg = window.CAMPAIGNS || {};
+
+  // 이미 등록된 캠페인이면 바로 resolve
+  if(!qid || reg[qid]) return Promise.resolve();
+
+  // 다른 JS 캠페인 파일이 있을 수도 있으니 먼저 시도
+  // (404면 Firebase로 fallback)
+  return new Promise(function(resolve){
     var s = document.createElement('script');
     s.src = 'campaigns/' + qid + '.js';
+    s.onload = function(){
+      // JS 파일 로드 성공 — 등록됐을 것
+      resolve();
+    };
+    s.onerror = function(){
+      // JS 파일 없음 → Firebase에서 로드 or 새로 생성
+      document.getElementById('app').innerHTML =
+        '<div style="padding:80px;text-align:center;color:#888;font-size:14px;">캠페인 불러오는 중…</div>';
+
+      window._fdb.ref('campaign_base/' + qid).once('value').then(function(snap){
+        window.CAMPAIGNS = window.CAMPAIGNS || {};
+        var data = snap.val();
+        if(data){
+          window.CAMPAIGNS[qid] = data;
+        } else {
+          // 완전히 새 캠페인 — 기본 템플릿으로 생성
+          var tpl = {
+            meta:{id:qid,name:qid,client:'',pm:'',status:'시안 v1',period:'',beanDate:'',goal:'',kpi:'',clientMust:''},
+            theme:{primary:'#2f7fd4',accent:'#16c265',heroFrom:'#cfe7fb',heroTo:'#eef7e9',band1:'#eaf4fd',band2:'#eaf7ef',mood:''},
+            floating:{type:'counter',label:'캠페인 참여 수',value:'0',unit:'건'},
+            hero:{org:'주최 기관명',title:'캠페인 헤드라인을\n입력하세요',sub:'서브 카피를 입력하세요.',
+              image:null,imageNote:'히어로 이미지 (권장 1920×520px)',plan:'',spec:{assets:[],interaction:'',note:''}},
+            missions:[{type:'story',band:'band1',bean:'미션 완료 시 콩 1개',
+              title:'미션 제목',sub:'미션 설명을 입력하세요.',image:null,imageNote:'미션 이미지',
+              cta:'참여하기',plan:'',spec:{assets:[],interaction:'',note:''}}],
+            sns:{copy:'SNS 채널을 팔로우하세요',channels:['홈페이지','인스타그램'],plan:'',spec:{assets:[],interaction:'',note:''}},
+            donation:{lead:'여러분의 참여로',amount:'최대 0원',desc:'이 기부됩니다.',cta:'매칭기부 자세히 보기',plan:'',spec:{assets:[],interaction:'',note:''}},
+            share:{copy:'이 캠페인을 공유해주세요',channels:['카카오톡','페이스북'],plan:'',spec:{assets:[],interaction:'',note:''}},
+            comments:{title:'댓글로 참여해주세요',guide:'댓글에 참여해 주신 모든 분들께 콩 1개를 드립니다.',
+              period:'',beanDate:'',disclaimer:'무성의, 반복, 악성댓글에는 콩이 지급되지 않습니다.',sideNote:'',plan:'',spec:{assets:[],interaction:'',note:''}}
+          };
+          window.CAMPAIGNS[qid] = tpl;
+          window._fdb.ref('campaign_base/' + qid).set(tpl); // Firebase에 저장
+        }
+        resolve();
+      }).catch(function(){ resolve(); });
+    };
     document.head.appendChild(s);
-  }
+  });
 })();
 </script>
 <script>
+window._campaignReady.then(function(){
 try{
 (function(){
   /* =========================================================
@@ -2953,6 +2998,7 @@ try{
   document.getElementById("app").innerHTML='<div style="padding:40px;background:#fff3f3;border:2px solid #f00;border-radius:12px;margin:20px;font-family:monospace;font-size:13px;"><b>JS ERROR:</b><br>'+e.message+'<br><br><pre>'+e.stack+'</pre></div>';
   console.error(e);
 }
+}); // end _campaignReady.then
 </script>
 </body>
 </html>
