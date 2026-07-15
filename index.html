@@ -49,8 +49,8 @@
   .img-drop-hint .ico{font-size:28px;}
   .img-real{border-radius:16px;width:100%;display:block;}
   .img-wrapper{position:relative;display:block;}
-  .img-edit-bar{position:absolute;top:10px;right:10px;display:none;gap:6px;z-index:5;}
-  .img-wrapper:hover .img-edit-bar{display:flex;}
+  .img-edit-bar{position:absolute;top:10px;right:10px;display:none;gap:6px;z-index:5;pointer-events:auto;}
+  body.edit-open .img-wrapper:hover .img-edit-bar{display:flex!important;}
   .img-edit-bar button{background:rgba(0,0,0,.65);color:#fff;border:none;border-radius:6px;
     font-size:12px;font-weight:700;padding:5px 11px;cursor:pointer;transition:background .1s;}
   .img-edit-bar button:hover{background:rgba(0,0,0,.9);}
@@ -1035,7 +1035,13 @@ try{
 
   function imgHtml(src, note, h, key){
     var k = 'data-imgkey="'+esc(key||'')+'"';
-    if(src) return '<div class="img-wrapper" '+k+'><img class="img-real" src="'+esc(src)+'" alt=""></div>';
+    if(src) return '<div class="img-wrapper" '+k+'>'
+      +'<img class="img-real" src="'+esc(src)+'" alt="">'
+      +(key ? '<div class="img-edit-bar">'
+        +'<button class="img-btn-change" data-imgkey="'+key+'">🖼 변경</button>'
+        +'<button class="img-btn-del" data-imgkey="'+key+'">🗑 삭제</button>'
+        +'</div>' : '')
+      +'</div>';
     return '<div class="img-ph" '+k+' style="min-height:'+(h||180)+'px;">'
       +'<div class="img-drop-hint"><div class="ico">🖼</div>'
       +'<div>'+esc(note||'이미지 영역')+'</div></div></div>';
@@ -1491,32 +1497,11 @@ try{
         var wrap = document.createElement('div');
         wrap.className = 'img-wrapper'; wrap.dataset.imgkey = key;
         wrap.appendChild(img);
-        // 이미지 편집 오버레이 버튼
+        // 이미지 편집 오버레이 버튼 (imgHtml과 동일 구조)
         var bar = document.createElement('div');
         bar.className = 'img-edit-bar';
-        var btnChange = document.createElement('button');
-        btnChange.textContent = '🖼 변경';
-        btnChange.onclick = function(){
-          var inp2 = document.createElement('input');
-          inp2.type='file'; inp2.accept='image/*';
-          inp2.onchange = function(){ if(inp2.files[0]){ var tmpPh = document.createElement('div'); tmpPh.dataset.imgkey=key; readImg(inp2.files[0], tmpPh); wrap.parentNode.replaceChild(tmpPh, wrap); } };
-          inp2.click();
-        };
-        var btnDel = document.createElement('button');
-        btnDel.textContent = '🗑 삭제';
-        btnDel.style.background = 'rgba(200,40,40,.75)';
-        btnDel.onclick = function(){
-          if(!confirm('이미지를 삭제할까요?')) return;
-          var newPh = document.createElement('div');
-          newPh.className='img-ph droppable'; newPh.dataset.imgkey=key;
-          var ph_h = key==='hero.image'?480:240;
-          newPh.style.minHeight = ph_h+'px';
-          newPh.innerHTML='<div class="img-drop-hint"><div class="ico">🖼</div><div>클릭하여 이미지 업로드</div></div>';
-          wrap.parentNode.replaceChild(newPh, wrap);
-          setVal(key, null); save(); bindImgDrop(newPh);
-          toast('이미지 삭제됨');
-        };
-        bar.appendChild(btnChange); bar.appendChild(btnDel);
+        bar.innerHTML = '<button class="img-btn-change" data-imgkey="'+key+'">🖼 변경</button>'
+          +'<button class="img-btn-del" data-imgkey="'+key+'">🗑 삭제</button>';
         wrap.appendChild(bar);
         ph.parentNode.replaceChild(wrap, ph);
         setVal(key, url);
@@ -1560,7 +1545,42 @@ try{
     document.querySelectorAll('.img-ph').forEach(function(ph){
       ph.classList.toggle('droppable', editOpen);
     });
+    // 이미지 오버레이 버튼 표시/숨김
+    document.querySelectorAll('.img-edit-bar').forEach(function(bar){
+      bar.style.display = editOpen ? '' : 'none';
+    });
   }
+
+  // 이미지 변경/삭제 버튼 이벤트 위임 (동적 렌더링 포함)
+  document.getElementById('app').addEventListener('click', function(e){
+    var btnC = e.target.closest('.img-btn-change');
+    var btnD = e.target.closest('.img-btn-del');
+    if(btnC){
+      var key = btnC.dataset.imgkey;
+      var inp2 = document.createElement('input');
+      inp2.type='file'; inp2.accept='image/*';
+      inp2.onchange = function(){
+        if(!inp2.files[0]) return;
+        var wrap = btnC.closest('.img-wrapper');
+        var ph = document.createElement('div'); ph.dataset.imgkey=key;
+        readImg(inp2.files[0], ph);
+        if(wrap && wrap.parentNode) wrap.parentNode.replaceChild(ph, wrap);
+      };
+      inp2.click();
+    }
+    if(btnD){
+      if(!confirm('이미지를 삭제할까요?')) return;
+      var key = btnD.dataset.imgkey;
+      var wrap = btnD.closest('.img-wrapper');
+      var newPh = document.createElement('div');
+      newPh.className='img-ph droppable'; newPh.dataset.imgkey=key;
+      newPh.style.minHeight = (key==='hero.image'?'480':'240')+'px';
+      newPh.innerHTML='<div class="img-drop-hint"><div class="ico">🖼</div><div>클릭하여 이미지 업로드</div></div>';
+      wrap.parentNode.replaceChild(newPh, wrap);
+      setVal(key, null); save(); bindImgDrop(newPh);
+      toast('이미지 삭제됨');
+    }
+  });
   function onEditInput(e){
     var el = e.target;
     var key = el.dataset.key;
