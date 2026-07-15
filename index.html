@@ -85,6 +85,44 @@
   .qcard.wrong-reveal .ic{background:#e05050!important;}
   .quiz-answered .qcard{pointer-events:none;}
 
+  /* ── MBTI 퀴즈 컴포넌트 ─────────────────────────────── */
+  .mbti-quiz{max-width:600px;margin:0 auto;text-align:center;}
+  .mbti-screen{animation:mbFadeIn .3s ease;}
+  @keyframes mbFadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+  .mbti-intro-text{font-size:15px;line-height:1.8;color:var(--sub);margin-bottom:28px;
+    background:rgba(255,255,255,.7);border-radius:16px;padding:20px 22px;
+    border:1px solid var(--line);text-align:left;white-space:pre-line;}
+  .mbti-start-label{font-size:11px;letter-spacing:.08em;color:var(--primary);font-weight:700;
+    text-transform:uppercase;margin-bottom:10px;}
+  .mbti-progress-wrap{margin-bottom:24px;}
+  .mbti-progress-label{font-size:12.5px;color:var(--sub);margin-bottom:8px;font-weight:600;}
+  .mbti-progress-bar{height:6px;background:var(--band1);border-radius:4px;overflow:hidden;}
+  .mbti-progress-fill{height:100%;background:var(--primary);border-radius:4px;transition:width .4s ease;}
+  .mbti-q-num{font-size:12px;color:var(--primary);font-weight:700;letter-spacing:.06em;margin-bottom:8px;}
+  .mbti-q-text{font-size:17px;font-weight:800;color:var(--ink);line-height:1.55;
+    margin-bottom:24px;white-space:pre-line;}
+  .mbti-choices{display:flex;flex-direction:column;gap:12px;}
+  .mbti-choice{display:flex;align-items:flex-start;gap:14px;background:#fff;
+    border:1.5px solid var(--line);border-radius:16px;padding:18px 20px;cursor:pointer;
+    text-align:left;transition:border-color .15s,background .15s,transform .1s;font-size:14.5px;
+    line-height:1.55;color:var(--ink);}
+  .mbti-choice:hover{border-color:var(--primary);background:#f8fbff;transform:translateY(-1px);}
+  .mbti-choice-label{flex:none;width:32px;height:32px;border-radius:50%;
+    background:var(--band1);display:flex;align-items:center;justify-content:center;
+    font-size:13px;font-weight:800;color:var(--primary);}
+  .mbti-result-badge{display:inline-flex;align-items:center;gap:10px;
+    background:var(--primary);color:#fff;border-radius:20px;padding:10px 22px;
+    font-size:15px;font-weight:800;margin-bottom:16px;}
+  .mbti-result-def{font-size:14px;color:var(--sub);font-style:italic;margin-bottom:20px;}
+  .mbti-result-desc{font-size:14.5px;line-height:1.8;color:var(--sub);text-align:left;
+    background:rgba(255,255,255,.7);border-radius:16px;padding:20px 22px;
+    border:1px solid var(--line);margin-bottom:20px;white-space:pre-line;}
+  .mbti-result-common{font-size:13px;line-height:1.7;color:var(--sub);margin-bottom:24px;
+    padding:16px 18px;background:var(--band1);border-radius:12px;white-space:pre-line;}
+  .mbti-retry-btn{font-size:13px;color:var(--sub);background:none;border:1px solid var(--line);
+    border-radius:12px;padding:8px 18px;cursor:pointer;margin-top:8px;}
+  .mbti-retry-btn:hover{border-color:var(--primary);color:var(--primary);}
+
   .cards-3{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;}
   .chan-card{background:#fff;border:1px solid var(--line);border-radius:18px;
     padding:28px 20px;text-align:center;box-shadow:0 6px 16px rgba(0,0,0,.05);}
@@ -436,23 +474,6 @@
      클라이언트 뷰 모드 (?view=client)
   ========================================================= */
   body.client-view .topbar{ display:none!important; }
-  .topbar{ transition: transform .25s ease; }
-  .tb-groups{ display:flex;align-items:center;gap:3px;flex-wrap:wrap; }
-  .tb-group{ display:flex;align-items:center;gap:3px; }
-  .tb-sep{ width:1px;height:20px;background:rgba(255,255,255,.15);margin:0 5px;flex-shrink:0; }
-  .tb-group-label{ font-size:9.5px;color:rgba(255,255,255,.35);letter-spacing:.04em;
-    padding:0 2px 0 4px;user-select:none;white-space:nowrap; }
-  body.topbar-hidden:not(.client-view) .topbar{ transform: translateY(-100%); }
-  #topbarToggle{
-    position:fixed; top:0; right:12px; z-index:9999;
-    background:rgba(30,30,40,.75); backdrop-filter:blur(6px);
-    color:#fff; border:none; border-radius:0 0 8px 8px;
-    padding:2px 10px 4px; font-size:11px; cursor:pointer;
-    transition: transform .25s ease, opacity .2s;
-    opacity:.5; line-height:1.6;
-  }
-  #topbarToggle:hover{ opacity:1; }
-  body.topbar-hidden #topbarToggle{ transform: translateY(0); opacity:.85; }
   body.client-view .ep-panel{ display:none!important; }
   body.client-view #histPanel{ display:none!important; }
   body.client-view .hist-preview{ display:none!important; }
@@ -557,87 +578,34 @@
   .approval-summary b{color:#16c265;}
 
 </style>
-<!-- Firebase SDK -->
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
-<script>
-(function(){
-  var cfg = {
-    apiKey: "AIzaSyDfrxzDxjAQGqyrzTlgBzWnoUuoG-8N_Fk",
-    authDomain: "happybean-proto.firebaseapp.com",
-    databaseURL: "https://happybean-proto-default-rtdb.asia-southeast1.firebasedatabase.app",
-    projectId: "happybean-proto",
-    storageBucket: "happybean-proto.firebasestorage.app",
-    messagingSenderId: "677823008633",
-    appId: "1:677823008633:web:6a6e65abdd620addc1a9a8"
-  };
-  if (!firebase.apps.length) firebase.initializeApp(cfg);
-  window._fdb = firebase.database();
-})();
-</script>
 </head>
 <body class="mode-design">
-<button id="topbarToggle" title="메뉴바 토글">▲ 메뉴</button>
 
 <!-- 툴바 -->
 <div class="client-view-banner">👁 클라이언트 보기 모드 — 편집 패널이 숨겨져 있습니다</div>
 <div class="topbar">
   <span class="label" id="tbLabel"><b>해피빈 캠페인 프로토타입</b></span>
-  <button class="status-pill status-draft" id="statusPill" title="캠페인 상태 변경">● 초안</button>
-  <span class="approval-summary" id="approvalSummary"></span>
-
-  <div class="tb-groups">
-    <!-- 보기 모드 -->
-    <div class="tb-group">
-      <span class="tb-group-label">보기</span>
-      <div class="seg">
-        <button data-mode="design" class="on">시안</button>
-        <button data-mode="plan">기획 문서</button>
-        <button data-mode="spec">제작 스펙</button>
-      </div>
+    <button class="status-pill status-draft" id="statusPill" title="캠페인 상태 변경">● 초안</button>
+    <span class="approval-summary" id="approvalSummary"></span>
+  <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+    <div class="seg">
+      <button data-mode="design" class="on">시안</button>
+      <button data-mode="plan">기획 문서</button>
+      <button data-mode="spec">제작 스펙</button>
     </div>
-
-    <div class="tb-sep"></div>
-
-    <!-- 편집 -->
-    <div class="tb-group">
-      <span class="tb-group-label">편집</span>
-      <button class="tb-btn tb-undo" id="undoBtn" title="실행 취소 (Ctrl+Z)">↩</button>
-      <button class="tb-btn tb-redo" id="redoBtn" title="다시 실행 (Ctrl+Y)">↪</button>
-      <button class="tb-btn" id="editToggle">✏️ 편집</button>
-      <button class="tb-btn" id="histToggle">🕐 히스토리</button>
-    </div>
-
-    <div class="tb-sep"></div>
-
-    <!-- 코멘트 -->
-    <div class="tb-group">
-      <span class="tb-group-label">코멘트</span>
-      <button class="tb-btn" id="commentModeBtn">💬 코멘트</button>
-      <button class="tb-btn" id="commentHideBtn" style="display:none;">핀 숨김</button>
-      <button class="tb-btn" id="commentListBtn">📋 목록</button>
-    </div>
-
-    <div class="tb-sep"></div>
-
-    <!-- 동기화 -->
-    <div class="tb-group">
-      <span class="tb-group-label">동기화</span>
-      <button class="tb-btn" id="draftPullBtn" title="서버에서 최신 드래프트 가져오기">☁ 드래프트</button>
-      <button class="tb-btn" id="syncPullBtn" title="서버에서 최신 코멘트 가져오기">🔄 코멘트</button>
-      <span id="syncStatus" style="font-size:11px;color:#16c265;align-self:center;"></span>
-      <span id="draftSyncStatus" style="font-size:11px;color:#16c265;align-self:center;"></span>
-    </div>
-
-    <div class="tb-sep"></div>
-
-    <!-- 공유·출력 -->
-    <div class="tb-group">
-      <span class="tb-group-label">공유·출력</span>
-      <button class="tb-btn" id="clientShareBtn">🔗 공유</button>
-      <button class="tb-btn" onclick="window.print()">인쇄·PDF</button>
-    </div>
-
+    <button class="tb-btn tb-undo" id="undoBtn" title="실행 취소 (Ctrl+Z)">↩</button>
+    <button class="tb-btn tb-redo" id="redoBtn" title="다시 실행 (Ctrl+Y)">↪</button>
+    <button class="tb-btn" id="histToggle">🕐 히스토리</button>
+        <button class="tb-btn" id="commentModeBtn">💬 코멘트</button>
+        <button class="tb-btn" id="commentHideBtn" style="display:none;">핀 숨김</button>
+        <button class="tb-btn" id="commentListBtn">📋 코멘트 목록</button>
+        <button class="tb-btn" id="syncPullBtn" title="서버에서 최신 코멘트 가져오기">🔄 코멘트 동기화</button>
+        <button class="tb-btn" id="draftPullBtn" title="서버에서 최신 드래프트 가져오기">☁ 드래프트 불러오기</button>
+        <span id="syncStatus" style="font-size:11.5px;color:#16c265;align-self:center;"></span>
+        <span id="draftSyncStatus" style="font-size:11.5px;color:#16c265;align-self:center;"></span>
+        <button class="tb-btn" id="clientShareBtn">🔗 클라이언트 공유</button>
+    <button class="tb-btn" onclick="window.print()">인쇄·PDF</button>
+    <button class="tb-btn" id="editToggle">✏️ 편집</button>
     <span class="save-dot" id="saveDot" title="저장 중..."></span>
   </div>
 </div>
@@ -712,6 +680,7 @@
     <div class="ep-group">
       <div class="ep-group-label">저장 · 내보내기</div>
       <button class="ep-export-btn" id="exportBtn">↓ campaign JS 다운로드</button>
+      <button class="ep-export-btn" id="exportHtmlBtn" style="margin-top:6px;background:#3a5a8a;">↓ 공유용 HTML 다운로드</button>
       <div class="ep-note" id="epNote">변경사항은 브라우저에 자동 저장됩니다</div>
       <button class="ep-new-campaign" id="newCampaignBtn">+ 새 캠페인 시작</button>
     </div>
@@ -932,62 +901,17 @@ window.CAMPAIGNS["kookmincall110"] = {
 
 </script>
 <script>
-/* 캠페인 로더 — JS 파일 없으면 Firebase에서 생성 */
-window._campaignReady = (function(){
+/* ?c= 파라미터로 다른 캠페인 로드 (실제 브라우저 + HTTP 환경에서만 동작) */
+(function(){
   var qid = new URLSearchParams(location.search).get('c');
-  var reg = window.CAMPAIGNS || {};
-
-  // 이미 등록된 캠페인이면 바로 resolve
-  if(!qid || reg[qid]) return Promise.resolve();
-
-  // 다른 JS 캠페인 파일이 있을 수도 있으니 먼저 시도
-  // (404면 Firebase로 fallback)
-  return new Promise(function(resolve){
+  if(qid && qid !== 'kookmincall110' && location.protocol !== 'about:') {
     var s = document.createElement('script');
     s.src = 'campaigns/' + qid + '.js';
-    s.onload = function(){
-      // JS 파일 로드 성공 — 등록됐을 것
-      resolve();
-    };
-    s.onerror = function(){
-      // JS 파일 없음 → Firebase에서 로드 or 새로 생성
-      document.getElementById('app').innerHTML =
-        '<div style="padding:80px;text-align:center;color:#888;font-size:14px;">캠페인 불러오는 중…</div>';
-
-      window._fdb.ref('campaign_base/' + qid).once('value').then(function(snap){
-        window.CAMPAIGNS = window.CAMPAIGNS || {};
-        var data = snap.val();
-        if(data){
-          window.CAMPAIGNS[qid] = data;
-        } else {
-          // 완전히 새 캠페인 — 기본 템플릿으로 생성
-          var tpl = {
-            meta:{id:qid,name:qid,client:'',pm:'',status:'시안 v1',period:'',beanDate:'',goal:'',kpi:'',clientMust:''},
-            theme:{primary:'#2f7fd4',accent:'#16c265',heroFrom:'#cfe7fb',heroTo:'#eef7e9',band1:'#eaf4fd',band2:'#eaf7ef',mood:''},
-            floating:{type:'counter',label:'캠페인 참여 수',value:'0',unit:'건'},
-            hero:{org:'주최 기관명',title:'캠페인 헤드라인을\n입력하세요',sub:'서브 카피를 입력하세요.',
-              image:null,imageNote:'히어로 이미지 (권장 1920×520px)',plan:'',spec:{assets:[],interaction:'',note:''}},
-            missions:[{type:'story',band:'band1',bean:'미션 완료 시 콩 1개',
-              title:'미션 제목',sub:'미션 설명을 입력하세요.',image:null,imageNote:'미션 이미지',
-              cta:'참여하기',plan:'',spec:{assets:[],interaction:'',note:''}}],
-            sns:{copy:'SNS 채널을 팔로우하세요',channels:['홈페이지','인스타그램'],plan:'',spec:{assets:[],interaction:'',note:''}},
-            donation:{lead:'여러분의 참여로',amount:'최대 0원',desc:'이 기부됩니다.',cta:'매칭기부 자세히 보기',plan:'',spec:{assets:[],interaction:'',note:''}},
-            share:{copy:'이 캠페인을 공유해주세요',channels:['카카오톡','페이스북'],plan:'',spec:{assets:[],interaction:'',note:''}},
-            comments:{title:'댓글로 참여해주세요',guide:'댓글에 참여해 주신 모든 분들께 콩 1개를 드립니다.',
-              period:'',beanDate:'',disclaimer:'무성의, 반복, 악성댓글에는 콩이 지급되지 않습니다.',sideNote:'',plan:'',spec:{assets:[],interaction:'',note:''}}
-          };
-          window.CAMPAIGNS[qid] = tpl;
-          window._fdb.ref('campaign_base/' + qid).set(tpl); // Firebase에 저장
-        }
-        resolve();
-      }).catch(function(){ resolve(); });
-    };
     document.head.appendChild(s);
-  });
+  }
 })();
 </script>
 <script>
-window._campaignReady.then(function(){
 try{
 (function(){
   /* =========================================================
@@ -1002,21 +926,13 @@ try{
   var qid = new URLSearchParams(location.search).get('c');
   var C = reg[qid] || reg[ids[0]];
   var storageKey = 'hb_draft_v2_' + C.meta.id;
+  var DRAFT_BIN_KEY  = 'hb_draft_bin_' + C.meta.id;
+  var DRAFT_JKEY     = '$2a$10$Pz6EsZEPeHA0GJYMxl3uEOhBkzmkTND.YzBG9Pc3iR5cxfguB.4lO';
   var _draftSyncing  = false;
   var _draftPushTimer = null;
-  var _lastDraftPushTime = 0; // 자신의 push 에코 무시용
 
-  /* 이미지 필드 제거 (Firebase 용량 절약) */
-  function stripImages(obj){
-    if(typeof obj === 'string') return obj.indexOf('data:image') === 0 ? '__img_local__' : obj;
-    if(Array.isArray(obj)) return obj.map(stripImages);
-    if(obj && typeof obj === 'object'){
-      var r = {};
-      Object.keys(obj).forEach(function(k){ r[k] = stripImages(obj[k]); });
-      return r;
-    }
-    return obj;
-  }
+  /* 이미지 포함 전체 저장 (압축 후 업로드) */
+  function stripImages(obj){ return obj; } // 압축 후 이미지 포함 저장
 
   /* 로컬 이미지 필드만 추출 */
   function extractImages(obj, prefix){
@@ -1042,64 +958,66 @@ try{
     return serverDraft;
   }
 
-  function _showDraftStatus(msg, ok){
-    var el = document.getElementById('draftSyncStatus');
-    if(!el) return;
-    el.textContent = msg;
-    el.style.color = ok ? '#16c265' : '#e88';
-    clearTimeout(el._t);
-    el._t = setTimeout(function(){ el.textContent = ''; }, 3000);
-  }
-
   function pushDraftToServer(){
     if(_draftSyncing) return;
     _draftSyncing = true;
-    _lastDraftPushTime = Date.now();
-    var stripped = stripImages(clone(draft));
-    window._fdb.ref('drafts/' + C.meta.id).set(stripped)
-      .then(function(){ _draftSyncing = false; _showDraftStatus('☁ 드래프트 저장됨', true); })
-      .catch(function(){ _draftSyncing = false; _showDraftStatus('클라우드 저장 실패', false); });
+    var payload  = JSON.stringify({ draft: stripImages(clone(draft)) });
+    var binId    = localStorage.getItem(DRAFT_BIN_KEY);
+    var headers  = { 'Content-Type':'application/json', 'X-Master-Key': DRAFT_JKEY };
+    var done = function(){ _draftSyncing = false; };
+    var showS = function(msg, ok){
+      var el = document.getElementById('draftSyncStatus');
+      if(!el) return;
+      el.textContent = msg;
+      el.style.color = ok ? '#16c265' : '#e88';
+      clearTimeout(el._t);
+      el._t = setTimeout(function(){ el.textContent = ''; }, 3000);
+    };
+    if(binId){
+      fetch('https://api.jsonbin.io/v3/b/'+binId, {method:'PUT', headers:headers, body:payload})
+        .then(function(r){ done(); if(r.ok) showS('☁ 드래프트 저장됨', true); else showS('클라우드 저장 실패', false); })
+        .catch(function(){ done(); showS('클라우드 연결 실패', false); });
+    } else {
+      var h2 = Object.assign({}, headers, {'X-Bin-Name':'hb-draft-'+(C.meta.id||'default')});
+      fetch('https://api.jsonbin.io/v3/b', {method:'POST', headers:h2, body:payload})
+        .then(function(r){ return r.json(); })
+        .then(function(d){ localStorage.setItem(DRAFT_BIN_KEY, d.metadata.id); done(); showS('☁ 드래프트 저장됨', true); })
+        .catch(function(){ done(); showS('클라우드 저장 실패', false); });
+    }
   }
 
   function pullDraftFromServer(cb){
-    _showDraftStatus('드래프트 불러오는 중…', true);
-    window._fdb.ref('drafts/' + C.meta.id).once('value')
-      .then(function(snap){
-        var serverDraft = snap.val();
-        if(!serverDraft){
-          _showDraftStatus('클라우드에 저장된 드래프트 없음 (편집 후 자동 저장됩니다)', false);
-          clearTimeout(document.getElementById('draftSyncStatus') && document.getElementById('draftSyncStatus')._t2);
-          if(document.getElementById('draftSyncStatus'))
-            document.getElementById('draftSyncStatus')._t2 = setTimeout(function(){
-              var el = document.getElementById('draftSyncStatus'); if(el) el.textContent='';
-            }, 4000);
-          cb && cb(); return;
-        }
+    var binId = localStorage.getItem(DRAFT_BIN_KEY);
+    if(!binId){
+      var el = document.getElementById('draftSyncStatus');
+      if(el){ el.textContent = '클라우드에 저장된 드래프트 없음 (편집 후 자동 저장됩니다)'; el.style.color='#888';
+        clearTimeout(el._t); el._t = setTimeout(function(){ el.textContent=''; }, 4000); }
+      cb && cb(); return;
+    }
+    var showS = function(msg, ok){
+      var el = document.getElementById('draftSyncStatus');
+      if(!el) return;
+      el.textContent = msg;
+      el.style.color = ok ? '#16c265' : '#e88';
+      clearTimeout(el._t);
+      el._t = setTimeout(function(){ el.textContent = ''; }, 3000);
+    };
+    showS('드래프트 불러오는 중…', true);
+    fetch('https://api.jsonbin.io/v3/b/'+binId+'/latest', {headers:{'X-Master-Key': DRAFT_JKEY}})
+      .then(function(r){ return r.json(); })
+      .then(function(d){
+        if(!d.record || !d.record.draft) { cb && cb(); return; }
+        var serverDraft = d.record.draft;
+        // 로컬 이미지 보존
         var localImgs = extractImages(draft, '');
         draft = restoreImages(serverDraft, localImgs);
         localStorage.setItem(storageKey, JSON.stringify(draft));
         applyTheme(draft.theme);
         render(); syncColorPickers(); buildEpContent(); buildEpSections(); buildEpPlan();
-        _showDraftStatus('☁ 드래프트 불러옴', true);
+        showS('☁ 드래프트 불러옴', true);
         cb && cb();
       })
-      .catch(function(){ _showDraftStatus('클라우드 연결 실패', false); cb && cb(); });
-  }
-
-  /* 실시간 리스너 — 다른 사용자가 변경하면 자동 반영 */
-  function initDraftRealtimeSync(){
-    window._fdb.ref('drafts/' + C.meta.id).on('value', function(snap){
-      // 자신의 push 직후 에코는 무시 (3초 이내)
-      if(Date.now() - _lastDraftPushTime < 3000) return;
-      var serverDraft = snap.val();
-      if(!serverDraft) return;
-      var localImgs = extractImages(draft, '');
-      draft = restoreImages(serverDraft, localImgs);
-      localStorage.setItem(storageKey, JSON.stringify(draft));
-      applyTheme(draft.theme);
-      render(); syncColorPickers(); buildEpContent(); buildEpSections(); buildEpPlan();
-      _showDraftStatus('🔄 실시간 동기화됨', true);
-    });
+      .catch(function(){ showS('클라우드 연결 실패', false); cb && cb(); });
   }
   var draft;
   try {
@@ -1155,7 +1073,6 @@ try{
 
   function imgHtml(src, note, h, key){
     var k = 'data-imgkey="'+esc(key||'')+'"';
-    if(src === '__img_local__') src = null; // Firebase에서 복원 못한 이미지는 placeholder로
     if(src) return '<div class="img-wrapper" '+k+'>'
       +'<img class="img-real" src="'+esc(src)+'" alt="">'
       +(key ? '<div class="img-edit-bar">'
@@ -1163,12 +1080,9 @@ try{
         +'<button class="img-btn-del" data-imgkey="'+key+'">🗑 삭제</button>'
         +'</div>' : '')
       +'</div>';
-    var sizeHint = h >= 400 ? '권장: 1920 × '+h+'px 이상' : '권장: 1200 × '+h+'px 이상';
     return '<div class="img-ph" '+k+' style="min-height:'+(h||180)+'px;">'
       +'<div class="img-drop-hint"><div class="ico">🖼</div>'
-      +'<div>'+esc(note||'이미지 영역')+'</div>'
-      +'<div style="margin-top:6px;font-size:11px;opacity:.55;font-family:monospace;">'+sizeHint+'</div>'
-      +'</div></div>';
+      +'<div>'+esc(note||'이미지 영역')+'</div></div></div>';
   }
   function planHtml(tag, txt){
     if(!txt) return '';
@@ -1205,7 +1119,8 @@ try{
     {type:'cards',    ico:'🃏', name:'정보 카드',     desc:'카드형 정보 나열'},
     {type:'cta',      ico:'👆', name:'행동 유도 CTA', desc:'버튼만 있는 단락'},
     {type:'video',    ico:'▶️', name:'영상 임베드',   desc:'동영상 플레이스홀더'},
-    {type:'custom',   ico:'✨', name:'커스텀',        desc:'자유 형식 인터랙션'}
+    {type:'custom',   ico:'✨', name:'커스텀',        desc:'자유 형식 인터랙션'},
+    {type:'mbti',     ico:'🚇', name:'MBTI 테스트',   desc:'대중교통 라이프스타일 유형'}
   ];
   var MISSION_DEFAULTS = {
     quiz:     {type:'quiz',band:'band1',section:'참여 퀴즈',question:'질문을 입력하세요',
@@ -1226,7 +1141,10 @@ try{
     video:    {type:'video',band:'band1',title:'영상으로 만나보세요',sub:'',
                videoNote:'유튜브 URL을 입력하세요',bean:'',cta:'영상 보고 참여하기'},
     custom:   {type:'custom',band:'',title:'커스텀 미션',sub:'',
-               concept:'이 캠페인 전용 인터랙션',bean:'',cta:''}
+               concept:'이 캠페인 전용 인터랙션',bean:'',cta:''},
+    mbti:     {type:'mbti',band:'band1',title:'나의 대중교통 라이프스타일 MBTI',
+               sub:'대중교통 이용 습관으로 알아보는 나만의 이동 유형',
+               bean:'미션 완료 시 콩 1개',cta:'결과 공유하기'}
   };
 
   function getMissionTypeInfo(type){
@@ -1330,6 +1248,62 @@ try{
         +'<div class="img-ph" style="min-height:260px;">[커스텀 미션] '+esc(m.concept||'이 캠페인 전용 인터랙션')+'</div>'
         +(m.bean?'<div><span class="bean">'+esc(m.bean)+'</span></div>':'')
         +(m.cta?'<div><button class="pill-btn cta-btn" data-bean="'+esc(m.bean||'')+'" data-midx="'+i+'">'+esc(m.cta)+'</button></div>':'')
+        +'</div></section>';
+    },
+    mbti: function(m, i){
+      /* 12문항 채점표 - 타입코드: A=초고속 B=한방직진 C=문앞포지션 D=창가감성 E=길안내 F=같이가요 */
+      var qData = JSON.stringify([
+        {q:'약속 장소까지 가는 방법이 두 가지예요.\n당신은 어떤 루트를 선택할까요?',
+         a:'환승 두 번이어도 제일 빨리 도착하는 루트',b:'7분 더 걸려도 한 번에 편하게 가는 루트',tA:'A',tB:'B'},
+        {q:'지하철이 들어옵니다.\n당신은 본능적으로 어디를 노리나요?',
+         a:'내릴 때 유리한 문 앞 자리',b:'기대기 좋고 창밖도 보이는 구석 자리',tA:'C',tB:'D'},
+        {q:'처음 가는 장소에 갈 때, 당신의 스타일은?',
+         a:'출구 번호, 환승 위치, 몇 번째 칸까지 미리 체크',b:'일단 가보고 그 동네 분위기 따라 움직이기',tA:'E',tB:'D'},
+        {q:'붐비는 역, 엘리베이터 앞에 줄이 길어요.\n당신은 보통 어떤 생각이 먼저 드나요?',
+         a:'오케이, 난 다른 루트로 빠르게 이동한다',b:'유아차·휠체어·어르신이 더 필요할 수 있으니 여유있게 기다린다',tA:'A',tB:'F'},
+        {q:'붐비는 버스를 탔을 때 더 중요한 것은?',
+         a:'오래 타도 덜 힘든 자리나 편한 위치',b:'내릴 타이밍 놓치지 않게 문 쪽 포지션',tA:'B',tB:'C'},
+        {q:'친구가 "이 역 너무 복잡해… 어떻게 가?"라고 묻습니다. 당신의 반응은?',
+         a:'엘리베이터·에스컬레이터·출입구 위치까지 상세 브리핑',b:'아예 더 찾기 쉬운 장소로 약속을 바꾸자고 한다',tA:'E',tB:'F'},
+        {q:'유아차를 끄는 친구와 같이 이동해야 하는 날,\n당신이 먼저 준비하는 것은?',
+         a:'환승이 적고 한 번에 편하게 가는 길을 파악',b:'엘리베이터 위치, 경사로, 넓은 통로 동선까지 체크',tA:'B',tB:'F'},
+        {q:'대중교통 안에서의 나는 어느 쪽에 더 가까운가요?',
+         a:'창밖 구경, 사람 구경, 음악 듣기까지 이동도 하나의 콘텐츠',b:'그냥 빨리 도착하는 게 최고의 콘텐츠',tA:'D',tB:'A'},
+        {q:'내릴 역 도착 30초 전, 내 머릿속은?',
+         a:'어디 문으로 나가야 사람이 적고 쉽게 하차할 수 있을지 계산 완료',b:'다음 환승 계단과 연결되는 칸까지 이미 계산 완료',tA:'C',tB:'A'},
+        {q:'만원 버스에 어르신이나 큰 짐 든 사람이 탔습니다.\n당신의 몸이 먼저 반응하는 쪽은?',
+         a:'자리나 공간부터 슬쩍 만들어 드린다',b:'내 자리를 지키기 위해 꽉 잡고 버틴다',tA:'F',tB:'C'},
+        {q:'처음 가는 동네에서 더 설레는 순간은?',
+         a:'버스 타고 창밖 보면서 동네 분위기 구경할 때',b:'노선도 보고 제일 안 헤매는 출구를 찾았을 때',tA:'D',tB:'E'},
+        {q:'같이 만나기로 한 친구 중 한 명이 목발을 짚고 있어요.\n당신이 약속 장소를 정하는 기준은?',
+         a:'환승 없이 바로 갈 수 있는 곳',b:'내가 조금 돌아가더라도 다 같이 덜 불편한 곳',tA:'B',tB:'F'}
+      ]);
+      var typeData = JSON.stringify({
+        A:{name:'초고속 환승부스터형',  ico:'⚡',def:'환승도 게임처럼 깨는 타임어택형 이동러',
+           desc:'당신은 시간과 동선을 빠르게 읽는 데 강합니다.\n두 번 갈아타더라도 더 빨리 도착하면 만족도가 올라가고, 복잡한 역에서도 어디로 움직여야 시간을 아낄 수 있는지 금방 감을 잡습니다.\n대중교통을 단순한 이동수단이 아니라 하나의 전략 게임처럼 즐기는 편이라, 출퇴근길이나 약속 가는 길에도 은근한 승부욕이 발동하는 타입입니다.\n\n배려 포인트도 분명합니다. 당신의 빠른 동선 감각이 엘리베이터 위치, 덜 복잡한 길, 함께 가는 사람의 이동 편의까지 같이 보게 되면 누군가에게 정말 든든한 길잡이가 될 수 있습니다.'},
+        B:{name:'한방직진 평온러형',    ico:'🛤',def:'복잡한 환승보다 한 번에 편한 길이 최고인 타입',
+           desc:'당신은 "조금 늦어도 한 번에"라는 철학이 분명합니다.\n환승이 적고, 덜 헷갈리고, 몸이 덜 피곤한 루트를 선호합니다.\n겉보기에 느긋해 보여도 사실은 스트레스를 줄이는 루트를 잘 고르는 사람입니다.\n\n이 타입은 배려 감각도 꽤 실용적입니다. 교통약자나 짐이 많은 사람과 함께 이동할 때도 "복잡하지 않고 한 번에 가는 길"의 가치를 자연스럽게 이해합니다.'},
+        C:{name:'문앞포지션 스나이퍼형',ico:'🎯',def:'내릴 때 안 헤매는 게 진짜 고수라고 믿는 타입',
+           desc:'당신은 승하차 타이밍과 위치 선정에 강합니다.\n문 어디쯤에 서야 덜 막히는지, 어느 쪽이 내릴 때 유리한지 본능적으로 읽습니다.\n겉으로는 조용해 보여도 머릿속에서는 늘 최적의 포지션을 계산 중입니다.\n\n이 감각이 배려와 만나면 더 빛납니다. 유아차, 큰 짐, 천천히 이동하는 사람을 위해 공간을 비워 주고 흐름을 정리하는 데도 강한 생활형 센스가 있습니다.'},
+        D:{name:'창가감성 시티러버형',  ico:'🌇',def:'창밖 풍경까지 즐겨야 이동이 완성되는 타입',
+           desc:'당신은 이동 자체를 꽤 즐깁니다.\n버스 창밖 풍경, 처음 보는 동네, 사람들 분위기, 지하철 안에서 듣는 음악까지 모두 하나의 콘텐츠예요.\n빨리 도착하는 것도 좋지만, 가는 과정이 재미있어야 만족도가 높습니다.\n\n속도만 보지 않기 때문에 누군가의 느린 리듬이나 불편한 이동도 비교적 자연스럽게 받아들이는 타입입니다.'},
+        E:{name:'길안내 내비고수형',    ico:'🗺',def:'출구 번호·환승 칸·엘리베이터 위치까지 말해주는 인간 지도',
+           desc:'당신은 복잡한 정보를 정리해서 알려주는 능력이 뛰어납니다.\n단순히 길을 아는 게 아니라, 상대가 덜 헷갈리게 설명하는 데 강합니다.\n처음 가는 장소가 불안한 사람, 복잡한 역 구조가 부담스러운 사람에게 당신은 거의 이동 안정장치 같은 존재입니다.\n\n빠른 길보다 쉬운 길을 설명할 수 있다는 건 생각보다 큰 재능입니다. 베리어프리 관점에서도 아주 실질적인 도움을 주기 쉬운 유형입니다.'},
+        F:{name:'같이가요 템포메이트형', ico:'🤝',def:'나 혼자 빨리보다 같이 편하게 가는 게 더 중요한 타입',
+           desc:'당신은 사람의 속도와 분위기를 잘 맞춥니다.\n누군가 천천히 걷거나, 낯선 역에서 불안해하거나, 유아차·목발·큰 짐 때문에 이동이 조심스러운 상황에서도 재촉하기보다 "같이 가자"가 먼저 나옵니다.\n\n당신에게 이동은 단순히 도착의 문제가 아닙니다. 누구도 쫓기지 않고, 덜 불편하게 이동하는 것이 중요합니다. 이 테스트에서 가장 배려 스타일이 또렷하게 드러나는 유형이기도 합니다.'}
+      });
+      return '<section class="band '+bandCls(m.band)+'" data-section="missions.'+i+'">'
+        +missionBar(m,i)
+        +'<div class="container center stack">'
+        +(m.title?'<div class="h2 pre"'+edAttr('missions.'+i+'.title')+'>'+pre(m.title)+'</div>':'')
+        +(m.sub?'<div class="lead pre"'+edAttr('missions.'+i+'.sub')+'>'+pre(m.sub)+'</div>':'')
+        +'<div class="mbti-quiz" data-mbti-midx="'+i+'" data-mbti-qs=\''+qData.replace(/'/g,'&#39;')+'\' data-mbti-types=\''+typeData.replace(/'/g,'&#39;')+'\'>'
+        +'<div class="mbti-screen mbti-start-screen">'
+        +'<div class="mbti-start-label">🚇 대중교통 라이프스타일 테스트</div>'
+        +'<div class="mbti-intro-text">버스 탈 때도 성격이 나오고, 지하철 기다릴 때도 취향이 드러납니다.\n문 앞에 설지, 창가를 고를지, 환승 2번을 감수할지, 조금 돌아가더라도 편한 길을 택할지.\n\n이 테스트는 대중교통 이용 시 자연스럽게 드러나는 나만의 라이프스타일을 알아보는 테스트입니다. 그리고 그 안에 슬쩍 숨어 있는 나의 배려 방식도 함께 확인할 수 있어요.\n\n정답은 없습니다. 그냥 제일 나다운 쪽을 고르면 됩니다.</div>'
+        +'<button class="pill-btn mbti-start-btn" style="font-size:16px;padding:16px 36px;">테스트 시작하기 →</button>'
+        +'</div></div>'
+        +(m.bean?'<div><span class="bean">'+esc(m.bean)+'</span></div>':'')
         +'</div></section>';
     }
   };
@@ -1512,6 +1486,76 @@ try{
         if(sec){ var btn = sec.querySelector('.cta-btn'); if(btn) btn.style.display='inline-flex'; }
       });
     });
+
+    /* ── MBTI 퀴즈 이벤트 핸들러 ─── */
+    window._mbtiState = window._mbtiState || {};
+    function mbtiRenderQ(container, qs, idx){
+      var q = qs[idx];
+      var pct = Math.round((idx / qs.length) * 100);
+      container.innerHTML = '<div class="mbti-screen">'
+        +'<div class="mbti-progress-wrap">'
+        +'<div class="mbti-progress-label">'+( idx+1 )+' / '+qs.length+'</div>'
+        +'<div class="mbti-progress-bar"><div class="mbti-progress-fill" style="width:'+pct+'%"></div></div>'
+        +'</div>'
+        +'<div class="mbti-q-num">Q'+(idx+1)+'</div>'
+        +'<div class="mbti-q-text">'+q.q.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/\n/g,'<br>')+'</div>'
+        +'<div class="mbti-choices">'
+        +'<button class="mbti-choice" data-choice="A"><span class="mbti-choice-label">A</span><span>'+q.a+'</span></button>'
+        +'<button class="mbti-choice" data-choice="B"><span class="mbti-choice-label">B</span><span>'+q.b+'</span></button>'
+        +'</div></div>';
+      container.querySelectorAll('.mbti-choice').forEach(function(btn){
+        btn.addEventListener('click', function(){
+          var midx = +container.closest('.mbti-quiz').dataset.mbtiMidx;
+          var st = window._mbtiState[midx];
+          var choice = btn.dataset.choice;
+          var typeKey = choice === 'A' ? qs[st.qIdx].tA : qs[st.qIdx].tB;
+          st.scores[typeKey] = (st.scores[typeKey]||0) + 1;
+          st.qIdx++;
+          if(st.qIdx >= qs.length){
+            // 채점: 최다 빈도 유형 결정
+            var bestKey='A', bestCount=0;
+            Object.keys(st.scores).forEach(function(k){
+              if(st.scores[k]>bestCount){bestCount=st.scores[k];bestKey=k;}
+            });
+            var types = JSON.parse(container.closest('.mbti-quiz').dataset.mbtiTypes);
+            var t = types[bestKey];
+            var commonText = '대중교통 취향은 단순한 습관 같지만,\n그 안에는 내 속도, 내 감성, 내 동선 감각, 그리고 나만의 배려 방식이 숨어 있습니다.\n\n친구들과 결과를 공유해 보고, 서로의 이동 스타일이 얼마나 다른지 확인해 보세요.';
+            container.innerHTML = '<div class="mbti-screen">'
+              +'<div class="mbti-result-badge">'+t.ico+' '+t.name+'</div>'
+              +'<div class="mbti-result-def">'+t.def+'</div>'
+              +'<div class="mbti-result-desc">'+t.desc.replace(/\n/g,'<br>')+'</div>'
+              +'<div class="mbti-result-common">'+commonText.replace(/\n/g,'<br>')+'</div>'
+              +'<button class="pill-btn cta-share-btn" style="margin-bottom:10px;">결과 공유하기</button><br>'
+              +'<button class="mbti-retry-btn">↺ 다시 하기</button>'
+              +'</div>';
+            toast('🌱 미션 완료! 콩 1개 적립!', 'bean');
+            container.querySelector('.cta-share-btn').addEventListener('click', function(){
+              try{ navigator.clipboard.writeText(location.href).then(function(){ toast('🔗 링크가 복사됐습니다!'); }); }
+              catch(e){ toast('🔗 링크 복사됨!'); }
+            });
+            container.querySelector('.mbti-retry-btn').addEventListener('click', function(){
+              window._mbtiState[midx] = {qIdx:0, scores:{}};
+              mbtiRenderQ(container, qs, 0);
+            });
+          } else {
+            mbtiRenderQ(container, qs, st.qIdx);
+          }
+        });
+      });
+    }
+    document.querySelectorAll('.mbti-quiz').forEach(function(quiz){
+      var midx = +quiz.dataset.mbtiMidx;
+      window._mbtiState[midx] = {qIdx:0, scores:{}};
+      var qs = JSON.parse(quiz.dataset.mbtiQs);
+      quiz.querySelector('.mbti-start-btn').addEventListener('click', function(){
+        var container = quiz.querySelector('.mbti-start-screen').parentNode;
+        quiz.querySelector('.mbti-start-screen').remove();
+        var wrap = document.createElement('div');
+        quiz.appendChild(wrap);
+        mbtiRenderQ(wrap, qs, 0);
+      });
+    });
+    /* ── MBTI 핸들러 끝 ─── */
 
     document.querySelectorAll('.cta-btn').forEach(function(btn){
       btn.addEventListener('click', function(){
@@ -2104,7 +2148,22 @@ try{
     saveSnapshot('Export — '+new Date().toLocaleString('ko-KR'));
   });
 
-
+  /* =========================================================
+     14. Export 공유용 HTML
+  ========================================================= */
+  document.getElementById('exportHtmlBtn').addEventListener('click', function(){
+    var html2 = document.documentElement.outerHTML;
+    var inlineData = '<script>window.CAMPAIGNS=window.CAMPAIGNS||{};window.CAMPAIGNS["'
+      +draft.meta.id+'"]='+JSON.stringify(draft)+';<\/script>';
+    html2 = html2.replace(/<script src="campaigns\/[^"]*"><\/script>/, inlineData);
+    html2 = html2.replace('.topbar{position:sticky', '.topbar{display:none!important;position:sticky');
+    var blob = new Blob([html2], {type:'text/html;charset=utf-8'});
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = draft.meta.id+'_share.html';
+    a.click();
+    toast('공유용 HTML 다운로드됨');
+  });
 
   /* =========================================================
      15. 모드 토글
@@ -2548,24 +2607,9 @@ try{
   updateApprovalSummary();
 
   // 페이지 로드 시 클라우드 드래프트 자동 로드
-  pullDraftFromServer(function(){ initDraftRealtimeSync(); });
+  pullDraftFromServer();
   var _draftPullBtn = document.getElementById('draftPullBtn');
   if(_draftPullBtn) _draftPullBtn.addEventListener('click', function(){ pullDraftFromServer(); });
-
-  /* 메뉴바 토글 */
-  (function(){
-    var btn = document.getElementById('topbarToggle');
-    if(!btn) return;
-    function updateBtn(){
-      var hidden = document.body.classList.contains('topbar-hidden');
-      btn.textContent = hidden ? '▼ 메뉴' : '▲ 메뉴';
-    }
-    btn.addEventListener('click', function(){
-      document.body.classList.toggle('topbar-hidden');
-      updateBtn();
-    });
-    updateBtn();
-  })();
 
   /* =========================================================
      폰트 적용
@@ -2632,373 +2676,4 @@ try{
           +(resolved?'<span style="font-size:10px;color:#2e7d52;background:#e8f5e9;padding:1px 6px;border-radius:4px;margin-left:4px;">✓해결</span>':'')
           +'<span class="cmt-list-author" style="margin-left:4px;">'+esc(c.author)+'</span>'
           +'<div class="cmt-list-text">'+esc(c.text)+'</div>'
-          +(replies?'<div style="font-size:11px;color:#555;margin-top:3px;">💬 답글 '+replies+'개</div>':'')
-          +'</div>';
-      }).join('');
-      body.querySelectorAll('.cmt-list-item').forEach(function(item){
-        item.addEventListener('click', function(){
-          var idx = +item.dataset.ci;
-          var list2 = loadC(); var c = list2[idx];
-          if(!c) return;
-          // 해당 핀으로 스크롤
-          var app = document.getElementById('app');
-          if(app){
-            var targetY = c.yAbs + app.getBoundingClientRect().top + window.pageYOffset - 120;
-            window.scrollTo({top: targetY, behavior:'smooth'});
-          }
-          // 패널 닫고 핀 클릭 효과
-          setTimeout(function(){
-            var pins = document.querySelectorAll('.cmt-pin');
-            if(pins[idx]) pins[idx].click();
-          }, 400);
-        });
-      });
-    }
-
-    var listBtn = document.getElementById('commentListBtn');
-    if(listBtn) listBtn.addEventListener('click', function(){
-      if(!panel) return;
-      panel.classList.toggle('open');
-      if(panel.classList.contains('open')) renderList();
-    });
-    var closeBtn = document.getElementById('cmtListClose');
-    if(closeBtn) closeBtn.addEventListener('click', function(){ panel && panel.classList.remove('open'); });
-    var clearBtn = document.getElementById('cmtListClear');
-    if(clearBtn) clearBtn.addEventListener('click', function(){
-      if(!confirm('모든 코멘트를 삭제할까요?')) return;
-      saveC([]);
-      renderList();
-      if(typeof renderPins === 'function') renderPins();
-      else document.querySelectorAll('.cmt-pin').forEach(function(p){ p.remove(); });
-    });
-
-    // 코멘트 추가/삭제 시 목록 자동 갱신
-    var _origSave = localStorage.setItem.bind(localStorage);
-    // 패널이 열려있을 때만 갱신 (setItem override 대신 MutationObserver 사용)
-    var mo = new MutationObserver(function(){
-      if(panel && panel.classList.contains('open')) renderList();
-    });
-    var app2 = document.getElementById('app');
-    if(app2) mo.observe(app2, {childList:true, subtree:true});
-  })();
-
-  /* =========================================================
-     미션 섹션 드래그 순서변경
-  ========================================================= */
-  (function(){
-    var dragSrc = null;
-    function addDragToRows(){
-      var rows = document.querySelectorAll('#epSections .ep-toggle-row[data-misi]');
-      rows.forEach(function(row){
-        row.setAttribute('draggable','true');
-        row.addEventListener('dragstart', function(e){
-          dragSrc = row;
-          e.dataTransfer.effectAllowed = 'move';
-          row.style.opacity = '0.4';
-        });
-        row.addEventListener('dragend', function(){
-          row.style.opacity = '';
-          document.querySelectorAll('#epSections .ep-toggle-row').forEach(function(r){
-            r.classList.remove('drag-over-row');
-          });
-        });
-        row.addEventListener('dragover', function(e){
-          e.preventDefault(); e.dataTransfer.dropEffect = 'move';
-          if(row !== dragSrc) row.classList.add('drag-over-row');
-        });
-        row.addEventListener('dragleave', function(){ row.classList.remove('drag-over-row'); });
-        row.addEventListener('drop', function(e){
-          e.preventDefault();
-          if(!dragSrc || dragSrc === row) return;
-          var fromIdx = +dragSrc.dataset.misi;
-          var toIdx   = +row.dataset.misi;
-          recordUndo();
-          var m = draft.missions.splice(fromIdx, 1)[0];
-          draft.missions.splice(toIdx, 0, m);
-          markDirty();
-          render(); buildEpContent(); buildEpSections(); buildEpPlan();
-          toast('순서 변경됨');
-        });
-      });
-    }
-    // buildEpSections 호출 후마다 드래그 재바인딩
-    var _origBuild = buildEpSections;
-    buildEpSections = function(){
-      _origBuild();
-      addDragToRows();
-    };
-    addDragToRows();
-  })();
-
-
-  /* =========================================================
-     코멘트(핀) 시스템
-  ========================================================= */
-  (function(){
-    var CMT_KEY = 'hb_comments_v1_' + (draft.meta.id || 'default');
-    var _cmtLastPushTime = 0;
-    var commentMode = false;
-    var pinsHidden = false;
-    var activePopup = null;
-    var _syncing = false;
-
-    /* 로컬 캐시 읽기/쓰기 (동기) */
-    function loadComments(){ try{ return JSON.parse(localStorage.getItem(CMT_KEY)||'[]'); }catch(e){ return []; } }
-    function saveComments(arr){
-      localStorage.setItem(CMT_KEY, JSON.stringify(arr));
-      pushToServer(arr);
-    }
-
-    /* Firebase 동기화 */
-    function showSyncStatus(msg, ok){
-      var el = document.getElementById('syncStatus');
-      if(!el) return;
-      el.textContent = msg;
-      el.style.color = ok ? '#16c265' : '#e88';
-      clearTimeout(el._t);
-      el._t = setTimeout(function(){ el.textContent = ''; }, 3000);
-    }
-
-    function pushToServer(arr){
-      if(_syncing) return;
-      _syncing = true;
-      _cmtLastPushTime = Date.now();
-      window._fdb.ref('comments/' + (draft.meta.id || 'default')).set(arr)
-        .then(function(){ _syncing = false; showSyncStatus('☁ 동기화됨', true); })
-        .catch(function(){ _syncing = false; showSyncStatus('동기화 실패', false); });
-    }
-
-    function pullFromServer(cb){
-      showSyncStatus('동기화 중…', true);
-      window._fdb.ref('comments/' + (draft.meta.id || 'default')).once('value')
-        .then(function(snap){
-          var arr = snap.val() || [];
-          if(!Array.isArray(arr)) arr = Object.values(arr);
-          localStorage.setItem(CMT_KEY, JSON.stringify(arr));
-          showSyncStatus('☁ 불러옴 (' + arr.length + '개)', true);
-          renderPins();
-          cb && cb();
-        })
-        .catch(function(){ showSyncStatus('서버 연결 실패', false); cb && cb(); });
-    }
-
-    /* 실시간 코멘트 리스너 */
-    function initCommentRealtimeSync(){
-      window._fdb.ref('comments/' + (draft.meta.id || 'default')).on('value', function(snap){
-        if(Date.now() - _cmtLastPushTime < 3000) return; // 자신의 push 에코 무시
-        var arr = snap.val() || [];
-        if(!Array.isArray(arr)) arr = Object.values(arr);
-        localStorage.setItem(CMT_KEY, JSON.stringify(arr));
-        renderPins();
-        showSyncStatus('🔄 코멘트 실시간 동기화', true);
-      });
-    }
-
-    function formatTime(iso){
-      var d = new Date(iso);
-      return (d.getMonth()+1)+'/'+(d.getDate())+' '
-        +('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2);
-    }
-
-    /* 핀 전체 렌더 */
-    function renderPins(){
-      document.querySelectorAll('.cmt-pin').forEach(function(p){ p.remove(); });
-      if(pinsHidden) return;
-      var app = document.getElementById('app');
-      if(!app) return;
-      app.style.position = 'relative';
-      var cmts = loadComments();
-      cmts.forEach(function(c, idx){
-        var pin = document.createElement('div');
-        pin.className = 'cmt-pin' + (c.resolved ? ' resolved' : '');
-        pin.style.left = c.xPct + '%';
-        pin.style.top = c.yAbs + 'px';
-        pin.innerHTML = '<span class="pin-num">' + (idx+1) + '</span>';
-        pin.addEventListener('click', function(e){
-          e.stopPropagation();
-          openThreadPopup(idx, pin);
-        });
-        app.appendChild(pin);
-      });
-    }
-
-    /* 팝업 닫기 */
-    function closePopup(){
-      if(activePopup){ activePopup.remove(); activePopup = null; }
-    }
-
-    /* 새 코멘트 입력 팝업 */
-    function openNewPopup(xPct, yAbs, e){
-      closePopup();
-      var popup = document.createElement('div');
-      popup.className = 'cmt-popup';
-      popup.style.left = Math.min(e.clientX, window.innerWidth-320) + 'px';
-      popup.style.top = Math.min(e.clientY+10, window.innerHeight-260) + 'px';
-      popup.innerHTML =
-        '<div class="cmt-popup-head"><span>💬 새 코멘트</span><button class="close-btn">✕</button></div>'
-        +'<div class="cmt-popup-footer">'
-        +'<input id="cmtAuthor" placeholder="이름 (예: 기획자 이현수)" maxlength="30">'
-        +'<textarea id="cmtText" rows="3" placeholder="코멘트 내용을 입력하세요"></textarea>'
-        +'<div class="cmt-popup-actions">'
-        +'<button class="cmt-popup-actions cmt-btn-resolve" id="cmtCancel">취소</button>'
-        +'<button class="cmt-btn-send" id="cmtSend">등록</button>'
-        +'</div></div>';
-      document.body.appendChild(popup);
-      activePopup = popup;
-
-      // 마지막 작성자 기억
-      var savedAuthor = localStorage.getItem('hb_cmt_author') || '';
-      popup.querySelector('#cmtAuthor').value = savedAuthor;
-      popup.querySelector('#cmtText').focus();
-
-      popup.querySelector('.close-btn').addEventListener('click', function(){ closePopup(); toggleCommentMode(false); });
-      popup.querySelector('#cmtCancel').addEventListener('click', function(){ closePopup(); toggleCommentMode(false); });
-      popup.querySelector('#cmtSend').addEventListener('click', function(){
-        var author = popup.querySelector('#cmtAuthor').value.trim() || '익명';
-        var text = popup.querySelector('#cmtText').value.trim();
-        if(!text) return;
-        localStorage.setItem('hb_cmt_author', author);
-        var cmts = loadComments();
-        cmts.push({ id: Date.now(), xPct: xPct, yAbs: yAbs, author: author, text: text,
-                    time: new Date().toISOString(), resolved: false, replies: [] });
-        saveComments(cmts);
-        closePopup();
-        toggleCommentMode(false);
-        renderPins();
-        toast('코멘트 등록됨');
-      });
-    }
-
-    /* 기존 핀 스레드 팝업 */
-    function openThreadPopup(idx, pinEl){
-      closePopup();
-      var cmts = loadComments();
-      var c = cmts[idx];
-      if(!c) return;
-
-      var popup = document.createElement('div');
-      popup.className = 'cmt-popup';
-      var rect = pinEl.getBoundingClientRect();
-      popup.style.left = Math.min(rect.right+8, window.innerWidth-320) + 'px';
-      popup.style.top = Math.max(rect.top-8, 10) + 'px';
-
-      function renderThread(){
-        var cmts2 = loadComments(); var c2 = cmts2[idx];
-        var threadHtml = '<div class="cmt-thread-item">'
-          +'<span class="cmt-thread-author">'+esc(c2.author)+'</span>'
-          +'<span class="cmt-thread-time">'+formatTime(c2.time)+'</span>'
-          +(c2.resolved?'<span class="cmt-resolved-badge">✓ 해결됨</span>':'')
-          +'<div class="cmt-thread-text">'+esc(c2.text)+'</div></div>';
-        (c2.replies||[]).forEach(function(r){
-          threadHtml += '<div class="cmt-thread-item">'
-            +'<span class="cmt-thread-author">'+esc(r.author)+'</span>'
-            +'<span class="cmt-thread-time">'+formatTime(r.time)+'</span>'
-            +'<div class="cmt-thread-text">'+esc(r.text)+'</div></div>';
-        });
-        popup.innerHTML =
-          '<div class="cmt-popup-head"><span>💬 코멘트 #'+(idx+1)+'</span><button class="close-btn">✕</button></div>'
-          +'<div class="cmt-popup-body">'+threadHtml+'</div>'
-          +'<div class="cmt-popup-footer">'
-          +'<input id="replyAuthor" placeholder="이름" maxlength="30" value="'+(localStorage.getItem('hb_cmt_author')||'')+'">'
-          +'<textarea id="replyText" rows="2" placeholder="답글 달기..."></textarea>'
-          +'<div class="cmt-popup-actions">'
-          +(c2.resolved
-            ? '<button class="cmt-btn-resolve" id="cmtReopen">다시 열기</button>'
-            : '<button class="cmt-btn-resolve" id="cmtResolve">✓ 해결</button>')
-          +'<button class="cmt-btn-del" id="cmtDel">삭제</button>'
-          +'<button class="cmt-btn-send" id="cmtReply">답글</button>'
-          +'</div></div>';
-
-        popup.querySelector('.close-btn').addEventListener('click', closePopup);
-        popup.querySelector('#cmtReply').addEventListener('click', function(){
-          var author = popup.querySelector('#replyAuthor').value.trim() || '익명';
-          var text = popup.querySelector('#replyText').value.trim();
-          if(!text) return;
-          localStorage.setItem('hb_cmt_author', author);
-          var cmts3 = loadComments();
-          cmts3[idx].replies = cmts3[idx].replies || [];
-          cmts3[idx].replies.push({ author: author, text: text, time: new Date().toISOString() });
-          saveComments(cmts3);
-          renderThread();
-        });
-        var resolveBtn = popup.querySelector('#cmtResolve');
-        if(resolveBtn) resolveBtn.addEventListener('click', function(){
-          var cmts3 = loadComments(); cmts3[idx].resolved = true; saveComments(cmts3);
-          renderThread(); renderPins();
-        });
-        var reopenBtn = popup.querySelector('#cmtReopen');
-        if(reopenBtn) reopenBtn.addEventListener('click', function(){
-          var cmts3 = loadComments(); cmts3[idx].resolved = false; saveComments(cmts3);
-          renderThread(); renderPins();
-        });
-        popup.querySelector('#cmtDel').addEventListener('click', function(){
-          if(!confirm('코멘트를 삭제할까요?')) return;
-          var cmts3 = loadComments(); cmts3.splice(idx,1); saveComments(cmts3);
-          closePopup(); renderPins();
-        });
-      }
-      renderThread();
-      document.body.appendChild(popup);
-      activePopup = popup;
-    }
-
-    /* 코멘트 모드 토글 */
-    function toggleCommentMode(force){
-      commentMode = (force !== undefined) ? force : !commentMode;
-      document.body.classList.toggle('comment-mode', commentMode);
-      var btn = document.getElementById('commentModeBtn');
-      if(btn) btn.style.background = commentMode ? '#16c265' : '';
-      if(btn) btn.style.color = commentMode ? '#fff' : '';
-      var hideBtn = document.getElementById('commentHideBtn');
-      if(hideBtn) hideBtn.style.display = '';
-    }
-
-    /* 캔버스 클릭 → 핀 생성 */
-    document.getElementById('app').addEventListener('click', function(e){
-      if(!commentMode) return;
-      e.stopPropagation();
-      var app = document.getElementById('app');
-      var rect = app.getBoundingClientRect();
-      var xPct = ((e.clientX - rect.left) / rect.width * 100);
-      var yAbs = (e.clientY - rect.top) + (window.pageYOffset || 0);
-      openNewPopup(xPct, yAbs, e);
-    });
-
-    /* 툴바 버튼 */
-    var cmBtn = document.getElementById('commentModeBtn');
-    if(cmBtn) cmBtn.addEventListener('click', function(){ toggleCommentMode(); });
-
-    var syncBtn = document.getElementById('syncPullBtn');
-    if(syncBtn) syncBtn.addEventListener('click', function(){ pullFromServer(); });
-
-    // draftPullBtn binding moved to main scope
-
-    var hideBtn = document.getElementById('commentHideBtn');
-    if(hideBtn) hideBtn.addEventListener('click', function(){
-      pinsHidden = !pinsHidden;
-      hideBtn.textContent = pinsHidden ? '핀 표시' : '핀 숨김';
-      renderPins();
-    });
-
-    /* 팝업 외부 클릭 닫기 */
-    document.addEventListener('click', function(e){
-      if(activePopup && !activePopup.contains(e.target) && !e.target.closest('.cmt-pin')){
-        closePopup();
-      }
-    });
-
-    /* 초기 렌더 */
-    renderPins();
-    pullFromServer(function(){ initCommentRealtimeSync(); }); // 서버에서 최신 코멘트 로드 후 실시간 리스너 등록
-  })();
-
-
-})();
-}catch(e){
-  document.getElementById("app").innerHTML='<div style="padding:40px;background:#fff3f3;border:2px solid #f00;border-radius:12px;margin:20px;font-family:monospace;font-size:13px;"><b>JS ERROR:</b><br>'+e.message+'<br><br><pre>'+e.stack+'</pre></div>';
-  console.error(e);
-}
-}); // end _campaignReady.then
-</script>
-</body>
-</html>
+          +(r
