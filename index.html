@@ -437,6 +437,11 @@
   ========================================================= */
   body.client-view .topbar{ display:none!important; }
   .topbar{ transition: transform .25s ease; }
+  .tb-groups{ display:flex;align-items:center;gap:3px;flex-wrap:wrap; }
+  .tb-group{ display:flex;align-items:center;gap:3px; }
+  .tb-sep{ width:1px;height:20px;background:rgba(255,255,255,.15);margin:0 5px;flex-shrink:0; }
+  .tb-group-label{ font-size:9.5px;color:rgba(255,255,255,.35);letter-spacing:.04em;
+    padding:0 2px 0 4px;user-select:none;white-space:nowrap; }
   body.topbar-hidden:not(.client-view) .topbar{ transform: translateY(-100%); }
   #topbarToggle{
     position:fixed; top:0; right:12px; z-index:9999;
@@ -578,27 +583,61 @@
 <div class="client-view-banner">👁 클라이언트 보기 모드 — 편집 패널이 숨겨져 있습니다</div>
 <div class="topbar">
   <span class="label" id="tbLabel"><b>해피빈 캠페인 프로토타입</b></span>
-    <button class="status-pill status-draft" id="statusPill" title="캠페인 상태 변경">● 초안</button>
-    <span class="approval-summary" id="approvalSummary"></span>
-  <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-    <div class="seg">
-      <button data-mode="design" class="on">시안</button>
-      <button data-mode="plan">기획 문서</button>
-      <button data-mode="spec">제작 스펙</button>
+  <button class="status-pill status-draft" id="statusPill" title="캠페인 상태 변경">● 초안</button>
+  <span class="approval-summary" id="approvalSummary"></span>
+
+  <div class="tb-groups">
+    <!-- 보기 모드 -->
+    <div class="tb-group">
+      <span class="tb-group-label">보기</span>
+      <div class="seg">
+        <button data-mode="design" class="on">시안</button>
+        <button data-mode="plan">기획 문서</button>
+        <button data-mode="spec">제작 스펙</button>
+      </div>
     </div>
-    <button class="tb-btn tb-undo" id="undoBtn" title="실행 취소 (Ctrl+Z)">↩</button>
-    <button class="tb-btn tb-redo" id="redoBtn" title="다시 실행 (Ctrl+Y)">↪</button>
-    <button class="tb-btn" id="histToggle">🕐 히스토리</button>
-        <button class="tb-btn" id="commentModeBtn">💬 코멘트</button>
-        <button class="tb-btn" id="commentHideBtn" style="display:none;">핀 숨김</button>
-        <button class="tb-btn" id="commentListBtn">📋 코멘트 목록</button>
-        <button class="tb-btn" id="syncPullBtn" title="서버에서 최신 코멘트 가져오기">🔄 코멘트 동기화</button>
-        <button class="tb-btn" id="draftPullBtn" title="서버에서 최신 드래프트 가져오기">☁ 드래프트 불러오기</button>
-        <span id="syncStatus" style="font-size:11.5px;color:#16c265;align-self:center;"></span>
-        <span id="draftSyncStatus" style="font-size:11.5px;color:#16c265;align-self:center;"></span>
-        <button class="tb-btn" id="clientShareBtn">🔗 클라이언트 공유</button>
-    <button class="tb-btn" onclick="window.print()">인쇄·PDF</button>
-    <button class="tb-btn" id="editToggle">✏️ 편집</button>
+
+    <div class="tb-sep"></div>
+
+    <!-- 편집 -->
+    <div class="tb-group">
+      <span class="tb-group-label">편집</span>
+      <button class="tb-btn tb-undo" id="undoBtn" title="실행 취소 (Ctrl+Z)">↩</button>
+      <button class="tb-btn tb-redo" id="redoBtn" title="다시 실행 (Ctrl+Y)">↪</button>
+      <button class="tb-btn" id="editToggle">✏️ 편집</button>
+      <button class="tb-btn" id="histToggle">🕐 히스토리</button>
+    </div>
+
+    <div class="tb-sep"></div>
+
+    <!-- 코멘트 -->
+    <div class="tb-group">
+      <span class="tb-group-label">코멘트</span>
+      <button class="tb-btn" id="commentModeBtn">💬 코멘트</button>
+      <button class="tb-btn" id="commentHideBtn" style="display:none;">핀 숨김</button>
+      <button class="tb-btn" id="commentListBtn">📋 목록</button>
+    </div>
+
+    <div class="tb-sep"></div>
+
+    <!-- 동기화 -->
+    <div class="tb-group">
+      <span class="tb-group-label">동기화</span>
+      <button class="tb-btn" id="draftPullBtn" title="서버에서 최신 드래프트 가져오기">☁ 드래프트</button>
+      <button class="tb-btn" id="syncPullBtn" title="서버에서 최신 코멘트 가져오기">🔄 코멘트</button>
+      <span id="syncStatus" style="font-size:11px;color:#16c265;align-self:center;"></span>
+      <span id="draftSyncStatus" style="font-size:11px;color:#16c265;align-self:center;"></span>
+    </div>
+
+    <div class="tb-sep"></div>
+
+    <!-- 공유·출력 -->
+    <div class="tb-group">
+      <span class="tb-group-label">공유·출력</span>
+      <button class="tb-btn" id="clientShareBtn">🔗 공유</button>
+      <button class="tb-btn" onclick="window.print()">인쇄·PDF</button>
+    </div>
+
     <span class="save-dot" id="saveDot" title="저장 중..."></span>
   </div>
 </div>
