@@ -474,6 +474,23 @@
      클라이언트 뷰 모드 (?view=client)
   ========================================================= */
   body.client-view .topbar{ display:none!important; }
+  .topbar{ transition: transform .25s ease; }
+  .tb-groups{ display:flex;align-items:center;gap:3px;flex-wrap:wrap; }
+  .tb-group{ display:flex;align-items:center;gap:3px; }
+  .tb-sep{ width:1px;height:20px;background:rgba(255,255,255,.15);margin:0 5px;flex-shrink:0; }
+  .tb-group-label{ font-size:9.5px;color:rgba(255,255,255,.35);letter-spacing:.04em;
+    padding:0 2px 0 4px;user-select:none;white-space:nowrap; }
+  body.topbar-hidden:not(.client-view) .topbar{ transform: translateY(-100%); }
+  #topbarToggle{
+    position:fixed; top:0; right:12px; z-index:9999;
+    background:rgba(30,30,40,.75); backdrop-filter:blur(6px);
+    color:#fff; border:none; border-radius:0 0 8px 8px;
+    padding:2px 10px 4px; font-size:11px; cursor:pointer;
+    transition: transform .25s ease, opacity .2s;
+    opacity:.5; line-height:1.6;
+  }
+  #topbarToggle:hover{ opacity:1; }
+  body.topbar-hidden #topbarToggle{ transform: translateY(0); opacity:.85; }
   body.client-view .ep-panel{ display:none!important; }
   body.client-view #histPanel{ display:none!important; }
   body.client-view .hist-preview{ display:none!important; }
@@ -578,34 +595,87 @@
   .approval-summary b{color:#16c265;}
 
 </style>
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+<script>
+(function(){
+  var cfg = {
+    apiKey: "AIzaSyDfrxzDxjAQGqyrzTlgBzWnoUuoG-8N_Fk",
+    authDomain: "happybean-proto.firebaseapp.com",
+    databaseURL: "https://happybean-proto-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "happybean-proto",
+    storageBucket: "happybean-proto.firebasestorage.app",
+    messagingSenderId: "677823008633",
+    appId: "1:677823008633:web:6a6e65abdd620addc1a9a8"
+  };
+  if (!firebase.apps.length) firebase.initializeApp(cfg);
+  window._fdb = firebase.database();
+})();
+</script>
 </head>
 <body class="mode-design">
+<button id="topbarToggle" title="메뉴바 토글">▲ 메뉴</button>
 
 <!-- 툴바 -->
 <div class="client-view-banner">👁 클라이언트 보기 모드 — 편집 패널이 숨겨져 있습니다</div>
 <div class="topbar">
   <span class="label" id="tbLabel"><b>해피빈 캠페인 프로토타입</b></span>
-    <button class="status-pill status-draft" id="statusPill" title="캠페인 상태 변경">● 초안</button>
-    <span class="approval-summary" id="approvalSummary"></span>
-  <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-    <div class="seg">
-      <button data-mode="design" class="on">시안</button>
-      <button data-mode="plan">기획 문서</button>
-      <button data-mode="spec">제작 스펙</button>
+  <button class="status-pill status-draft" id="statusPill" title="캠페인 상태 변경">● 초안</button>
+  <span class="approval-summary" id="approvalSummary"></span>
+
+  <div class="tb-groups">
+    <!-- 보기 모드 -->
+    <div class="tb-group">
+      <span class="tb-group-label">보기</span>
+      <div class="seg">
+        <button data-mode="design" class="on">시안</button>
+        <button data-mode="plan">기획 문서</button>
+        <button data-mode="spec">제작 스펙</button>
+      </div>
     </div>
-    <button class="tb-btn tb-undo" id="undoBtn" title="실행 취소 (Ctrl+Z)">↩</button>
-    <button class="tb-btn tb-redo" id="redoBtn" title="다시 실행 (Ctrl+Y)">↪</button>
-    <button class="tb-btn" id="histToggle">🕐 히스토리</button>
-        <button class="tb-btn" id="commentModeBtn">💬 코멘트</button>
-        <button class="tb-btn" id="commentHideBtn" style="display:none;">핀 숨김</button>
-        <button class="tb-btn" id="commentListBtn">📋 코멘트 목록</button>
-        <button class="tb-btn" id="syncPullBtn" title="서버에서 최신 코멘트 가져오기">🔄 코멘트 동기화</button>
-        <button class="tb-btn" id="draftPullBtn" title="서버에서 최신 드래프트 가져오기">☁ 드래프트 불러오기</button>
-        <span id="syncStatus" style="font-size:11.5px;color:#16c265;align-self:center;"></span>
-        <span id="draftSyncStatus" style="font-size:11.5px;color:#16c265;align-self:center;"></span>
-        <button class="tb-btn" id="clientShareBtn">🔗 클라이언트 공유</button>
-    <button class="tb-btn" onclick="window.print()">인쇄·PDF</button>
-    <button class="tb-btn" id="editToggle">✏️ 편집</button>
+
+    <div class="tb-sep"></div>
+
+    <!-- 편집 -->
+    <div class="tb-group">
+      <span class="tb-group-label">편집</span>
+      <button class="tb-btn tb-undo" id="undoBtn" title="실행 취소 (Ctrl+Z)">↩</button>
+      <button class="tb-btn tb-redo" id="redoBtn" title="다시 실행 (Ctrl+Y)">↪</button>
+      <button class="tb-btn" id="editToggle">✏️ 편집</button>
+      <button class="tb-btn" id="histToggle">🕐 히스토리</button>
+    </div>
+
+    <div class="tb-sep"></div>
+
+    <!-- 코멘트 -->
+    <div class="tb-group">
+      <span class="tb-group-label">코멘트</span>
+      <button class="tb-btn" id="commentModeBtn">💬 코멘트</button>
+      <button class="tb-btn" id="commentHideBtn" style="display:none;">핀 숨김</button>
+      <button class="tb-btn" id="commentListBtn">📋 목록</button>
+    </div>
+
+    <div class="tb-sep"></div>
+
+    <!-- 동기화 -->
+    <div class="tb-group">
+      <span class="tb-group-label">동기화</span>
+      <button class="tb-btn" id="draftPullBtn" title="서버에서 최신 드래프트 가져오기">☁ 드래프트</button>
+      <button class="tb-btn" id="syncPullBtn" title="서버에서 최신 코멘트 가져오기">🔄 코멘트</button>
+      <span id="syncStatus" style="font-size:11px;color:#16c265;align-self:center;"></span>
+      <span id="draftSyncStatus" style="font-size:11px;color:#16c265;align-self:center;"></span>
+    </div>
+
+    <div class="tb-sep"></div>
+
+    <!-- 공유·출력 -->
+    <div class="tb-group">
+      <span class="tb-group-label">공유·출력</span>
+      <button class="tb-btn" id="clientShareBtn">🔗 공유</button>
+      <button class="tb-btn" onclick="window.print()">인쇄·PDF</button>
+    </div>
+
     <span class="save-dot" id="saveDot" title="저장 중..."></span>
   </div>
 </div>
@@ -680,7 +750,6 @@
     <div class="ep-group">
       <div class="ep-group-label">저장 · 내보내기</div>
       <button class="ep-export-btn" id="exportBtn">↓ campaign JS 다운로드</button>
-      <button class="ep-export-btn" id="exportHtmlBtn" style="margin-top:6px;background:#3a5a8a;">↓ 공유용 HTML 다운로드</button>
       <div class="ep-note" id="epNote">변경사항은 브라우저에 자동 저장됩니다</div>
       <button class="ep-new-campaign" id="newCampaignBtn">+ 새 캠페인 시작</button>
     </div>
@@ -901,17 +970,62 @@ window.CAMPAIGNS["kookmincall110"] = {
 
 </script>
 <script>
-/* ?c= 파라미터로 다른 캠페인 로드 (실제 브라우저 + HTTP 환경에서만 동작) */
-(function(){
+/* 캠페인 로더 — JS 파일 없으면 Firebase에서 생성 */
+window._campaignReady = (function(){
   var qid = new URLSearchParams(location.search).get('c');
-  if(qid && qid !== 'kookmincall110' && location.protocol !== 'about:') {
+  var reg = window.CAMPAIGNS || {};
+
+  // 이미 등록된 캠페인이면 바로 resolve
+  if(!qid || reg[qid]) return Promise.resolve();
+
+  // 다른 JS 캠페인 파일이 있을 수도 있으니 먼저 시도
+  // (404면 Firebase로 fallback)
+  return new Promise(function(resolve){
     var s = document.createElement('script');
     s.src = 'campaigns/' + qid + '.js';
+    s.onload = function(){
+      // JS 파일 로드 성공 — 등록됐을 것
+      resolve();
+    };
+    s.onerror = function(){
+      // JS 파일 없음 → Firebase에서 로드 or 새로 생성
+      document.getElementById('app').innerHTML =
+        '<div style="padding:80px;text-align:center;color:#888;font-size:14px;">캠페인 불러오는 중…</div>';
+
+      window._fdb.ref('campaign_base/' + qid).once('value').then(function(snap){
+        window.CAMPAIGNS = window.CAMPAIGNS || {};
+        var data = snap.val();
+        if(data){
+          window.CAMPAIGNS[qid] = data;
+        } else {
+          // 완전히 새 캠페인 — 기본 템플릿으로 생성
+          var tpl = {
+            meta:{id:qid,name:qid,client:'',pm:'',status:'시안 v1',period:'',beanDate:'',goal:'',kpi:'',clientMust:''},
+            theme:{primary:'#2f7fd4',accent:'#16c265',heroFrom:'#cfe7fb',heroTo:'#eef7e9',band1:'#eaf4fd',band2:'#eaf7ef',mood:''},
+            floating:{type:'counter',label:'캠페인 참여 수',value:'0',unit:'건'},
+            hero:{org:'주최 기관명',title:'캠페인 헤드라인을\n입력하세요',sub:'서브 카피를 입력하세요.',
+              image:null,imageNote:'히어로 이미지 (권장 1920×520px)',plan:'',spec:{assets:[],interaction:'',note:''}},
+            missions:[{type:'story',band:'band1',bean:'미션 완료 시 콩 1개',
+              title:'미션 제목',sub:'미션 설명을 입력하세요.',image:null,imageNote:'미션 이미지',
+              cta:'참여하기',plan:'',spec:{assets:[],interaction:'',note:''}}],
+            sns:{copy:'SNS 채널을 팔로우하세요',channels:['홈페이지','인스타그램'],plan:'',spec:{assets:[],interaction:'',note:''}},
+            donation:{lead:'여러분의 참여로',amount:'최대 0원',desc:'이 기부됩니다.',cta:'매칭기부 자세히 보기',plan:'',spec:{assets:[],interaction:'',note:''}},
+            share:{copy:'이 캠페인을 공유해주세요',channels:['카카오톡','페이스북'],plan:'',spec:{assets:[],interaction:'',note:''}},
+            comments:{title:'댓글로 참여해주세요',guide:'댓글에 참여해 주신 모든 분들께 콩 1개를 드립니다.',
+              period:'',beanDate:'',disclaimer:'무성의, 반복, 악성댓글에는 콩이 지급되지 않습니다.',sideNote:'',plan:'',spec:{assets:[],interaction:'',note:''}}
+          };
+          window.CAMPAIGNS[qid] = tpl;
+          window._fdb.ref('campaign_base/' + qid).set(tpl); // Firebase에 저장
+        }
+        resolve();
+      }).catch(function(){ resolve(); });
+    };
     document.head.appendChild(s);
-  }
+  });
 })();
 </script>
 <script>
+window._campaignReady.then(function(){
 try{
 (function(){
   /* =========================================================
@@ -926,13 +1040,21 @@ try{
   var qid = new URLSearchParams(location.search).get('c');
   var C = reg[qid] || reg[ids[0]];
   var storageKey = 'hb_draft_v2_' + C.meta.id;
-  var DRAFT_BIN_KEY  = 'hb_draft_bin_' + C.meta.id;
-  var DRAFT_JKEY     = '$2a$10$Pz6EsZEPeHA0GJYMxl3uEOhBkzmkTND.YzBG9Pc3iR5cxfguB.4lO';
   var _draftSyncing  = false;
   var _draftPushTimer = null;
+  var _lastDraftPushTime = 0; // 자신의 push 에코 무시용
 
-  /* 이미지 포함 전체 저장 (압축 후 업로드) */
-  function stripImages(obj){ return obj; } // 압축 후 이미지 포함 저장
+  /* 이미지 필드 제거 (Firebase 용량 절약) */
+  function stripImages(obj){
+    if(typeof obj === 'string') return obj.indexOf('data:image') === 0 ? '__img_local__' : obj;
+    if(Array.isArray(obj)) return obj.map(stripImages);
+    if(obj && typeof obj === 'object'){
+      var r = {};
+      Object.keys(obj).forEach(function(k){ r[k] = stripImages(obj[k]); });
+      return r;
+    }
+    return obj;
+  }
 
   /* 로컬 이미지 필드만 추출 */
   function extractImages(obj, prefix){
@@ -958,66 +1080,64 @@ try{
     return serverDraft;
   }
 
+  function _showDraftStatus(msg, ok){
+    var el = document.getElementById('draftSyncStatus');
+    if(!el) return;
+    el.textContent = msg;
+    el.style.color = ok ? '#16c265' : '#e88';
+    clearTimeout(el._t);
+    el._t = setTimeout(function(){ el.textContent = ''; }, 3000);
+  }
+
   function pushDraftToServer(){
     if(_draftSyncing) return;
     _draftSyncing = true;
-    var payload  = JSON.stringify({ draft: stripImages(clone(draft)) });
-    var binId    = localStorage.getItem(DRAFT_BIN_KEY);
-    var headers  = { 'Content-Type':'application/json', 'X-Master-Key': DRAFT_JKEY };
-    var done = function(){ _draftSyncing = false; };
-    var showS = function(msg, ok){
-      var el = document.getElementById('draftSyncStatus');
-      if(!el) return;
-      el.textContent = msg;
-      el.style.color = ok ? '#16c265' : '#e88';
-      clearTimeout(el._t);
-      el._t = setTimeout(function(){ el.textContent = ''; }, 3000);
-    };
-    if(binId){
-      fetch('https://api.jsonbin.io/v3/b/'+binId, {method:'PUT', headers:headers, body:payload})
-        .then(function(r){ done(); if(r.ok) showS('☁ 드래프트 저장됨', true); else showS('클라우드 저장 실패', false); })
-        .catch(function(){ done(); showS('클라우드 연결 실패', false); });
-    } else {
-      var h2 = Object.assign({}, headers, {'X-Bin-Name':'hb-draft-'+(C.meta.id||'default')});
-      fetch('https://api.jsonbin.io/v3/b', {method:'POST', headers:h2, body:payload})
-        .then(function(r){ return r.json(); })
-        .then(function(d){ localStorage.setItem(DRAFT_BIN_KEY, d.metadata.id); done(); showS('☁ 드래프트 저장됨', true); })
-        .catch(function(){ done(); showS('클라우드 저장 실패', false); });
-    }
+    _lastDraftPushTime = Date.now();
+    var stripped = stripImages(clone(draft));
+    window._fdb.ref('drafts/' + C.meta.id).set(stripped)
+      .then(function(){ _draftSyncing = false; _showDraftStatus('☁ 드래프트 저장됨', true); })
+      .catch(function(){ _draftSyncing = false; _showDraftStatus('클라우드 저장 실패', false); });
   }
 
   function pullDraftFromServer(cb){
-    var binId = localStorage.getItem(DRAFT_BIN_KEY);
-    if(!binId){
-      var el = document.getElementById('draftSyncStatus');
-      if(el){ el.textContent = '클라우드에 저장된 드래프트 없음 (편집 후 자동 저장됩니다)'; el.style.color='#888';
-        clearTimeout(el._t); el._t = setTimeout(function(){ el.textContent=''; }, 4000); }
-      cb && cb(); return;
-    }
-    var showS = function(msg, ok){
-      var el = document.getElementById('draftSyncStatus');
-      if(!el) return;
-      el.textContent = msg;
-      el.style.color = ok ? '#16c265' : '#e88';
-      clearTimeout(el._t);
-      el._t = setTimeout(function(){ el.textContent = ''; }, 3000);
-    };
-    showS('드래프트 불러오는 중…', true);
-    fetch('https://api.jsonbin.io/v3/b/'+binId+'/latest', {headers:{'X-Master-Key': DRAFT_JKEY}})
-      .then(function(r){ return r.json(); })
-      .then(function(d){
-        if(!d.record || !d.record.draft) { cb && cb(); return; }
-        var serverDraft = d.record.draft;
-        // 로컬 이미지 보존
+    _showDraftStatus('드래프트 불러오는 중…', true);
+    window._fdb.ref('drafts/' + C.meta.id).once('value')
+      .then(function(snap){
+        var serverDraft = snap.val();
+        if(!serverDraft){
+          _showDraftStatus('클라우드에 저장된 드래프트 없음 (편집 후 자동 저장됩니다)', false);
+          clearTimeout(document.getElementById('draftSyncStatus') && document.getElementById('draftSyncStatus')._t2);
+          if(document.getElementById('draftSyncStatus'))
+            document.getElementById('draftSyncStatus')._t2 = setTimeout(function(){
+              var el = document.getElementById('draftSyncStatus'); if(el) el.textContent='';
+            }, 4000);
+          cb && cb(); return;
+        }
         var localImgs = extractImages(draft, '');
         draft = restoreImages(serverDraft, localImgs);
         localStorage.setItem(storageKey, JSON.stringify(draft));
         applyTheme(draft.theme);
         render(); syncColorPickers(); buildEpContent(); buildEpSections(); buildEpPlan();
-        showS('☁ 드래프트 불러옴', true);
+        _showDraftStatus('☁ 드래프트 불러옴', true);
         cb && cb();
       })
-      .catch(function(){ showS('클라우드 연결 실패', false); cb && cb(); });
+      .catch(function(){ _showDraftStatus('클라우드 연결 실패', false); cb && cb(); });
+  }
+
+  /* 실시간 리스너 — 다른 사용자가 변경하면 자동 반영 */
+  function initDraftRealtimeSync(){
+    window._fdb.ref('drafts/' + C.meta.id).on('value', function(snap){
+      // 자신의 push 직후 에코는 무시 (3초 이내)
+      if(Date.now() - _lastDraftPushTime < 3000) return;
+      var serverDraft = snap.val();
+      if(!serverDraft) return;
+      var localImgs = extractImages(draft, '');
+      draft = restoreImages(serverDraft, localImgs);
+      localStorage.setItem(storageKey, JSON.stringify(draft));
+      applyTheme(draft.theme);
+      render(); syncColorPickers(); buildEpContent(); buildEpSections(); buildEpPlan();
+      _showDraftStatus('🔄 실시간 동기화됨', true);
+    });
   }
   var draft;
   try {
@@ -1073,6 +1193,7 @@ try{
 
   function imgHtml(src, note, h, key){
     var k = 'data-imgkey="'+esc(key||'')+'"';
+    if(src === '__img_local__') src = null; // Firebase에서 복원 못한 이미지는 placeholder로
     if(src) return '<div class="img-wrapper" '+k+'>'
       +'<img class="img-real" src="'+esc(src)+'" alt="">'
       +(key ? '<div class="img-edit-bar">'
@@ -1080,9 +1201,12 @@ try{
         +'<button class="img-btn-del" data-imgkey="'+key+'">🗑 삭제</button>'
         +'</div>' : '')
       +'</div>';
+    var sizeHint = h >= 400 ? '권장: 1920 × '+h+'px 이상' : '권장: 1200 × '+h+'px 이상';
     return '<div class="img-ph" '+k+' style="min-height:'+(h||180)+'px;">'
       +'<div class="img-drop-hint"><div class="ico">🖼</div>'
-      +'<div>'+esc(note||'이미지 영역')+'</div></div></div>';
+      +'<div>'+esc(note||'이미지 영역')+'</div>'
+      +'<div style="margin-top:6px;font-size:11px;opacity:.55;font-family:monospace;">'+sizeHint+'</div>'
+      +'</div></div>';
   }
   function planHtml(tag, txt){
     if(!txt) return '';
@@ -1251,7 +1375,6 @@ try{
         +'</div></section>';
     },
     mbti: function(m, i){
-      /* 12문항 채점표 - 타입코드: A=초고속 B=한방직진 C=문앞포지션 D=창가감성 E=길안내 F=같이가요 */
       var qData = JSON.stringify([
         {q:'약속 장소까지 가는 방법이 두 가지예요.\n당신은 어떤 루트를 선택할까요?',
          a:'환승 두 번이어도 제일 빨리 도착하는 루트',b:'7분 더 걸려도 한 번에 편하게 가는 루트',tA:'A',tB:'B'},
@@ -1297,7 +1420,7 @@ try{
         +'<div class="container center stack">'
         +(m.title?'<div class="h2 pre"'+edAttr('missions.'+i+'.title')+'>'+pre(m.title)+'</div>':'')
         +(m.sub?'<div class="lead pre"'+edAttr('missions.'+i+'.sub')+'>'+pre(m.sub)+'</div>':'')
-        +'<div class="mbti-quiz" data-mbti-midx="'+i+'" data-mbti-qs=\''+qData.replace(/'/g,'&#39;')+'\' data-mbti-types=\''+typeData.replace(/'/g,'&#39;')+'\'>'
+        +'<div class="mbti-quiz" data-mbti-midx="'+i+'" data-mbti-qs=\''+qData.replace(/\'/g,'&#39;')+'\' data-mbti-types=\''+typeData.replace(/\'/g,'&#39;')+'\'>'
         +'<div class="mbti-screen mbti-start-screen">'
         +'<div class="mbti-start-label">🚇 대중교통 라이프스타일 테스트</div>'
         +'<div class="mbti-intro-text">버스 탈 때도 성격이 나오고, 지하철 기다릴 때도 취향이 드러납니다.\n문 앞에 설지, 창가를 고를지, 환승 2번을 감수할지, 조금 돌아가더라도 편한 길을 택할지.\n\n이 테스트는 대중교통 이용 시 자연스럽게 드러나는 나만의 라이프스타일을 알아보는 테스트입니다. 그리고 그 안에 슬쩍 숨어 있는 나의 배려 방식도 함께 확인할 수 있어요.\n\n정답은 없습니다. 그냥 제일 나다운 쪽을 고르면 됩니다.</div>'
@@ -1494,7 +1617,7 @@ try{
       var pct = Math.round((idx / qs.length) * 100);
       container.innerHTML = '<div class="mbti-screen">'
         +'<div class="mbti-progress-wrap">'
-        +'<div class="mbti-progress-label">'+( idx+1 )+' / '+qs.length+'</div>'
+        +'<div class="mbti-progress-label">'+(idx+1)+' / '+qs.length+'</div>'
         +'<div class="mbti-progress-bar"><div class="mbti-progress-fill" style="width:'+pct+'%"></div></div>'
         +'</div>'
         +'<div class="mbti-q-num">Q'+(idx+1)+'</div>'
@@ -1507,12 +1630,10 @@ try{
         btn.addEventListener('click', function(){
           var midx = +container.closest('.mbti-quiz').dataset.mbtiMidx;
           var st = window._mbtiState[midx];
-          var choice = btn.dataset.choice;
-          var typeKey = choice === 'A' ? qs[st.qIdx].tA : qs[st.qIdx].tB;
+          var typeKey = btn.dataset.choice === 'A' ? qs[st.qIdx].tA : qs[st.qIdx].tB;
           st.scores[typeKey] = (st.scores[typeKey]||0) + 1;
           st.qIdx++;
           if(st.qIdx >= qs.length){
-            // 채점: 최다 빈도 유형 결정
             var bestKey='A', bestCount=0;
             Object.keys(st.scores).forEach(function(k){
               if(st.scores[k]>bestCount){bestCount=st.scores[k];bestKey=k;}
@@ -1547,9 +1668,11 @@ try{
       var midx = +quiz.dataset.mbtiMidx;
       window._mbtiState[midx] = {qIdx:0, scores:{}};
       var qs = JSON.parse(quiz.dataset.mbtiQs);
-      quiz.querySelector('.mbti-start-btn').addEventListener('click', function(){
-        var container = quiz.querySelector('.mbti-start-screen').parentNode;
-        quiz.querySelector('.mbti-start-screen').remove();
+      var startBtn = quiz.querySelector('.mbti-start-btn');
+      if(!startBtn) return;
+      startBtn.addEventListener('click', function(){
+        var startScreen = quiz.querySelector('.mbti-start-screen');
+        if(startScreen) startScreen.remove();
         var wrap = document.createElement('div');
         quiz.appendChild(wrap);
         mbtiRenderQ(wrap, qs, 0);
@@ -2148,22 +2271,7 @@ try{
     saveSnapshot('Export — '+new Date().toLocaleString('ko-KR'));
   });
 
-  /* =========================================================
-     14. Export 공유용 HTML
-  ========================================================= */
-  document.getElementById('exportHtmlBtn').addEventListener('click', function(){
-    var html2 = document.documentElement.outerHTML;
-    var inlineData = '<script>window.CAMPAIGNS=window.CAMPAIGNS||{};window.CAMPAIGNS["'
-      +draft.meta.id+'"]='+JSON.stringify(draft)+';<\/script>';
-    html2 = html2.replace(/<script src="campaigns\/[^"]*"><\/script>/, inlineData);
-    html2 = html2.replace('.topbar{position:sticky', '.topbar{display:none!important;position:sticky');
-    var blob = new Blob([html2], {type:'text/html;charset=utf-8'});
-    var a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = draft.meta.id+'_share.html';
-    a.click();
-    toast('공유용 HTML 다운로드됨');
-  });
+
 
   /* =========================================================
      15. 모드 토글
@@ -2607,9 +2715,24 @@ try{
   updateApprovalSummary();
 
   // 페이지 로드 시 클라우드 드래프트 자동 로드
-  pullDraftFromServer();
+  pullDraftFromServer(function(){ initDraftRealtimeSync(); });
   var _draftPullBtn = document.getElementById('draftPullBtn');
   if(_draftPullBtn) _draftPullBtn.addEventListener('click', function(){ pullDraftFromServer(); });
+
+  /* 메뉴바 토글 */
+  (function(){
+    var btn = document.getElementById('topbarToggle');
+    if(!btn) return;
+    function updateBtn(){
+      var hidden = document.body.classList.contains('topbar-hidden');
+      btn.textContent = hidden ? '▼ 메뉴' : '▲ 메뉴';
+    }
+    btn.addEventListener('click', function(){
+      document.body.classList.toggle('topbar-hidden');
+      updateBtn();
+    });
+    updateBtn();
+  })();
 
   /* =========================================================
      폰트 적용
@@ -2676,4 +2799,373 @@ try{
           +(resolved?'<span style="font-size:10px;color:#2e7d52;background:#e8f5e9;padding:1px 6px;border-radius:4px;margin-left:4px;">✓해결</span>':'')
           +'<span class="cmt-list-author" style="margin-left:4px;">'+esc(c.author)+'</span>'
           +'<div class="cmt-list-text">'+esc(c.text)+'</div>'
-          +(r
+          +(replies?'<div style="font-size:11px;color:#555;margin-top:3px;">💬 답글 '+replies+'개</div>':'')
+          +'</div>';
+      }).join('');
+      body.querySelectorAll('.cmt-list-item').forEach(function(item){
+        item.addEventListener('click', function(){
+          var idx = +item.dataset.ci;
+          var list2 = loadC(); var c = list2[idx];
+          if(!c) return;
+          // 해당 핀으로 스크롤
+          var app = document.getElementById('app');
+          if(app){
+            var targetY = c.yAbs + app.getBoundingClientRect().top + window.pageYOffset - 120;
+            window.scrollTo({top: targetY, behavior:'smooth'});
+          }
+          // 패널 닫고 핀 클릭 효과
+          setTimeout(function(){
+            var pins = document.querySelectorAll('.cmt-pin');
+            if(pins[idx]) pins[idx].click();
+          }, 400);
+        });
+      });
+    }
+
+    var listBtn = document.getElementById('commentListBtn');
+    if(listBtn) listBtn.addEventListener('click', function(){
+      if(!panel) return;
+      panel.classList.toggle('open');
+      if(panel.classList.contains('open')) renderList();
+    });
+    var closeBtn = document.getElementById('cmtListClose');
+    if(closeBtn) closeBtn.addEventListener('click', function(){ panel && panel.classList.remove('open'); });
+    var clearBtn = document.getElementById('cmtListClear');
+    if(clearBtn) clearBtn.addEventListener('click', function(){
+      if(!confirm('모든 코멘트를 삭제할까요?')) return;
+      saveC([]);
+      renderList();
+      if(typeof renderPins === 'function') renderPins();
+      else document.querySelectorAll('.cmt-pin').forEach(function(p){ p.remove(); });
+    });
+
+    // 코멘트 추가/삭제 시 목록 자동 갱신
+    var _origSave = localStorage.setItem.bind(localStorage);
+    // 패널이 열려있을 때만 갱신 (setItem override 대신 MutationObserver 사용)
+    var mo = new MutationObserver(function(){
+      if(panel && panel.classList.contains('open')) renderList();
+    });
+    var app2 = document.getElementById('app');
+    if(app2) mo.observe(app2, {childList:true, subtree:true});
+  })();
+
+  /* =========================================================
+     미션 섹션 드래그 순서변경
+  ========================================================= */
+  (function(){
+    var dragSrc = null;
+    function addDragToRows(){
+      var rows = document.querySelectorAll('#epSections .ep-toggle-row[data-misi]');
+      rows.forEach(function(row){
+        row.setAttribute('draggable','true');
+        row.addEventListener('dragstart', function(e){
+          dragSrc = row;
+          e.dataTransfer.effectAllowed = 'move';
+          row.style.opacity = '0.4';
+        });
+        row.addEventListener('dragend', function(){
+          row.style.opacity = '';
+          document.querySelectorAll('#epSections .ep-toggle-row').forEach(function(r){
+            r.classList.remove('drag-over-row');
+          });
+        });
+        row.addEventListener('dragover', function(e){
+          e.preventDefault(); e.dataTransfer.dropEffect = 'move';
+          if(row !== dragSrc) row.classList.add('drag-over-row');
+        });
+        row.addEventListener('dragleave', function(){ row.classList.remove('drag-over-row'); });
+        row.addEventListener('drop', function(e){
+          e.preventDefault();
+          if(!dragSrc || dragSrc === row) return;
+          var fromIdx = +dragSrc.dataset.misi;
+          var toIdx   = +row.dataset.misi;
+          recordUndo();
+          var m = draft.missions.splice(fromIdx, 1)[0];
+          draft.missions.splice(toIdx, 0, m);
+          markDirty();
+          render(); buildEpContent(); buildEpSections(); buildEpPlan();
+          toast('순서 변경됨');
+        });
+      });
+    }
+    // buildEpSections 호출 후마다 드래그 재바인딩
+    var _origBuild = buildEpSections;
+    buildEpSections = function(){
+      _origBuild();
+      addDragToRows();
+    };
+    addDragToRows();
+  })();
+
+
+  /* =========================================================
+     코멘트(핀) 시스템
+  ========================================================= */
+  (function(){
+    var CMT_KEY = 'hb_comments_v1_' + (draft.meta.id || 'default');
+    var _cmtLastPushTime = 0;
+    var commentMode = false;
+    var pinsHidden = false;
+    var activePopup = null;
+    var _syncing = false;
+
+    /* 로컬 캐시 읽기/쓰기 (동기) */
+    function loadComments(){ try{ return JSON.parse(localStorage.getItem(CMT_KEY)||'[]'); }catch(e){ return []; } }
+    function saveComments(arr){
+      localStorage.setItem(CMT_KEY, JSON.stringify(arr));
+      pushToServer(arr);
+    }
+
+    /* Firebase 동기화 */
+    function showSyncStatus(msg, ok){
+      var el = document.getElementById('syncStatus');
+      if(!el) return;
+      el.textContent = msg;
+      el.style.color = ok ? '#16c265' : '#e88';
+      clearTimeout(el._t);
+      el._t = setTimeout(function(){ el.textContent = ''; }, 3000);
+    }
+
+    function pushToServer(arr){
+      if(_syncing) return;
+      _syncing = true;
+      _cmtLastPushTime = Date.now();
+      window._fdb.ref('comments/' + (draft.meta.id || 'default')).set(arr)
+        .then(function(){ _syncing = false; showSyncStatus('☁ 동기화됨', true); })
+        .catch(function(){ _syncing = false; showSyncStatus('동기화 실패', false); });
+    }
+
+    function pullFromServer(cb){
+      showSyncStatus('동기화 중…', true);
+      window._fdb.ref('comments/' + (draft.meta.id || 'default')).once('value')
+        .then(function(snap){
+          var arr = snap.val() || [];
+          if(!Array.isArray(arr)) arr = Object.values(arr);
+          localStorage.setItem(CMT_KEY, JSON.stringify(arr));
+          showSyncStatus('☁ 불러옴 (' + arr.length + '개)', true);
+          renderPins();
+          cb && cb();
+        })
+        .catch(function(){ showSyncStatus('서버 연결 실패', false); cb && cb(); });
+    }
+
+    /* 실시간 코멘트 리스너 */
+    function initCommentRealtimeSync(){
+      window._fdb.ref('comments/' + (draft.meta.id || 'default')).on('value', function(snap){
+        if(Date.now() - _cmtLastPushTime < 3000) return; // 자신의 push 에코 무시
+        var arr = snap.val() || [];
+        if(!Array.isArray(arr)) arr = Object.values(arr);
+        localStorage.setItem(CMT_KEY, JSON.stringify(arr));
+        renderPins();
+        showSyncStatus('🔄 코멘트 실시간 동기화', true);
+      });
+    }
+
+    function formatTime(iso){
+      var d = new Date(iso);
+      return (d.getMonth()+1)+'/'+(d.getDate())+' '
+        +('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2);
+    }
+
+    /* 핀 전체 렌더 */
+    function renderPins(){
+      document.querySelectorAll('.cmt-pin').forEach(function(p){ p.remove(); });
+      if(pinsHidden) return;
+      var app = document.getElementById('app');
+      if(!app) return;
+      app.style.position = 'relative';
+      var cmts = loadComments();
+      cmts.forEach(function(c, idx){
+        var pin = document.createElement('div');
+        pin.className = 'cmt-pin' + (c.resolved ? ' resolved' : '');
+        pin.style.left = c.xPct + '%';
+        pin.style.top = c.yAbs + 'px';
+        pin.innerHTML = '<span class="pin-num">' + (idx+1) + '</span>';
+        pin.addEventListener('click', function(e){
+          e.stopPropagation();
+          openThreadPopup(idx, pin);
+        });
+        app.appendChild(pin);
+      });
+    }
+
+    /* 팝업 닫기 */
+    function closePopup(){
+      if(activePopup){ activePopup.remove(); activePopup = null; }
+    }
+
+    /* 새 코멘트 입력 팝업 */
+    function openNewPopup(xPct, yAbs, e){
+      closePopup();
+      var popup = document.createElement('div');
+      popup.className = 'cmt-popup';
+      popup.style.left = Math.min(e.clientX, window.innerWidth-320) + 'px';
+      popup.style.top = Math.min(e.clientY+10, window.innerHeight-260) + 'px';
+      popup.innerHTML =
+        '<div class="cmt-popup-head"><span>💬 새 코멘트</span><button class="close-btn">✕</button></div>'
+        +'<div class="cmt-popup-footer">'
+        +'<input id="cmtAuthor" placeholder="이름 (예: 기획자 이현수)" maxlength="30">'
+        +'<textarea id="cmtText" rows="3" placeholder="코멘트 내용을 입력하세요"></textarea>'
+        +'<div class="cmt-popup-actions">'
+        +'<button class="cmt-popup-actions cmt-btn-resolve" id="cmtCancel">취소</button>'
+        +'<button class="cmt-btn-send" id="cmtSend">등록</button>'
+        +'</div></div>';
+      document.body.appendChild(popup);
+      activePopup = popup;
+
+      // 마지막 작성자 기억
+      var savedAuthor = localStorage.getItem('hb_cmt_author') || '';
+      popup.querySelector('#cmtAuthor').value = savedAuthor;
+      popup.querySelector('#cmtText').focus();
+
+      popup.querySelector('.close-btn').addEventListener('click', function(){ closePopup(); toggleCommentMode(false); });
+      popup.querySelector('#cmtCancel').addEventListener('click', function(){ closePopup(); toggleCommentMode(false); });
+      popup.querySelector('#cmtSend').addEventListener('click', function(){
+        var author = popup.querySelector('#cmtAuthor').value.trim() || '익명';
+        var text = popup.querySelector('#cmtText').value.trim();
+        if(!text) return;
+        localStorage.setItem('hb_cmt_author', author);
+        var cmts = loadComments();
+        cmts.push({ id: Date.now(), xPct: xPct, yAbs: yAbs, author: author, text: text,
+                    time: new Date().toISOString(), resolved: false, replies: [] });
+        saveComments(cmts);
+        closePopup();
+        toggleCommentMode(false);
+        renderPins();
+        toast('코멘트 등록됨');
+      });
+    }
+
+    /* 기존 핀 스레드 팝업 */
+    function openThreadPopup(idx, pinEl){
+      closePopup();
+      var cmts = loadComments();
+      var c = cmts[idx];
+      if(!c) return;
+
+      var popup = document.createElement('div');
+      popup.className = 'cmt-popup';
+      var rect = pinEl.getBoundingClientRect();
+      popup.style.left = Math.min(rect.right+8, window.innerWidth-320) + 'px';
+      popup.style.top = Math.max(rect.top-8, 10) + 'px';
+
+      function renderThread(){
+        var cmts2 = loadComments(); var c2 = cmts2[idx];
+        var threadHtml = '<div class="cmt-thread-item">'
+          +'<span class="cmt-thread-author">'+esc(c2.author)+'</span>'
+          +'<span class="cmt-thread-time">'+formatTime(c2.time)+'</span>'
+          +(c2.resolved?'<span class="cmt-resolved-badge">✓ 해결됨</span>':'')
+          +'<div class="cmt-thread-text">'+esc(c2.text)+'</div></div>';
+        (c2.replies||[]).forEach(function(r){
+          threadHtml += '<div class="cmt-thread-item">'
+            +'<span class="cmt-thread-author">'+esc(r.author)+'</span>'
+            +'<span class="cmt-thread-time">'+formatTime(r.time)+'</span>'
+            +'<div class="cmt-thread-text">'+esc(r.text)+'</div></div>';
+        });
+        popup.innerHTML =
+          '<div class="cmt-popup-head"><span>💬 코멘트 #'+(idx+1)+'</span><button class="close-btn">✕</button></div>'
+          +'<div class="cmt-popup-body">'+threadHtml+'</div>'
+          +'<div class="cmt-popup-footer">'
+          +'<input id="replyAuthor" placeholder="이름" maxlength="30" value="'+(localStorage.getItem('hb_cmt_author')||'')+'">'
+          +'<textarea id="replyText" rows="2" placeholder="답글 달기..."></textarea>'
+          +'<div class="cmt-popup-actions">'
+          +(c2.resolved
+            ? '<button class="cmt-btn-resolve" id="cmtReopen">다시 열기</button>'
+            : '<button class="cmt-btn-resolve" id="cmtResolve">✓ 해결</button>')
+          +'<button class="cmt-btn-del" id="cmtDel">삭제</button>'
+          +'<button class="cmt-btn-send" id="cmtReply">답글</button>'
+          +'</div></div>';
+
+        popup.querySelector('.close-btn').addEventListener('click', closePopup);
+        popup.querySelector('#cmtReply').addEventListener('click', function(){
+          var author = popup.querySelector('#replyAuthor').value.trim() || '익명';
+          var text = popup.querySelector('#replyText').value.trim();
+          if(!text) return;
+          localStorage.setItem('hb_cmt_author', author);
+          var cmts3 = loadComments();
+          cmts3[idx].replies = cmts3[idx].replies || [];
+          cmts3[idx].replies.push({ author: author, text: text, time: new Date().toISOString() });
+          saveComments(cmts3);
+          renderThread();
+        });
+        var resolveBtn = popup.querySelector('#cmtResolve');
+        if(resolveBtn) resolveBtn.addEventListener('click', function(){
+          var cmts3 = loadComments(); cmts3[idx].resolved = true; saveComments(cmts3);
+          renderThread(); renderPins();
+        });
+        var reopenBtn = popup.querySelector('#cmtReopen');
+        if(reopenBtn) reopenBtn.addEventListener('click', function(){
+          var cmts3 = loadComments(); cmts3[idx].resolved = false; saveComments(cmts3);
+          renderThread(); renderPins();
+        });
+        popup.querySelector('#cmtDel').addEventListener('click', function(){
+          if(!confirm('코멘트를 삭제할까요?')) return;
+          var cmts3 = loadComments(); cmts3.splice(idx,1); saveComments(cmts3);
+          closePopup(); renderPins();
+        });
+      }
+      renderThread();
+      document.body.appendChild(popup);
+      activePopup = popup;
+    }
+
+    /* 코멘트 모드 토글 */
+    function toggleCommentMode(force){
+      commentMode = (force !== undefined) ? force : !commentMode;
+      document.body.classList.toggle('comment-mode', commentMode);
+      var btn = document.getElementById('commentModeBtn');
+      if(btn) btn.style.background = commentMode ? '#16c265' : '';
+      if(btn) btn.style.color = commentMode ? '#fff' : '';
+      var hideBtn = document.getElementById('commentHideBtn');
+      if(hideBtn) hideBtn.style.display = '';
+    }
+
+    /* 캔버스 클릭 → 핀 생성 */
+    document.getElementById('app').addEventListener('click', function(e){
+      if(!commentMode) return;
+      e.stopPropagation();
+      var app = document.getElementById('app');
+      var rect = app.getBoundingClientRect();
+      var xPct = ((e.clientX - rect.left) / rect.width * 100);
+      var yAbs = (e.clientY - rect.top) + (window.pageYOffset || 0);
+      openNewPopup(xPct, yAbs, e);
+    });
+
+    /* 툴바 버튼 */
+    var cmBtn = document.getElementById('commentModeBtn');
+    if(cmBtn) cmBtn.addEventListener('click', function(){ toggleCommentMode(); });
+
+    var syncBtn = document.getElementById('syncPullBtn');
+    if(syncBtn) syncBtn.addEventListener('click', function(){ pullFromServer(); });
+
+    // draftPullBtn binding moved to main scope
+
+    var hideBtn = document.getElementById('commentHideBtn');
+    if(hideBtn) hideBtn.addEventListener('click', function(){
+      pinsHidden = !pinsHidden;
+      hideBtn.textContent = pinsHidden ? '핀 표시' : '핀 숨김';
+      renderPins();
+    });
+
+    /* 팝업 외부 클릭 닫기 */
+    document.addEventListener('click', function(e){
+      if(activePopup && !activePopup.contains(e.target) && !e.target.closest('.cmt-pin')){
+        closePopup();
+      }
+    });
+
+    /* 초기 렌더 */
+    renderPins();
+    pullFromServer(function(){ initCommentRealtimeSync(); }); // 서버에서 최신 코멘트 로드 후 실시간 리스너 등록
+  })();
+
+
+})();
+}catch(e){
+  document.getElementById("app").innerHTML='<div style="padding:40px;background:#fff3f3;border:2px solid #f00;border-radius:12px;margin:20px;font-family:monospace;font-size:13px;"><b>JS ERROR:</b><br>'+e.message+'<br><br><pre>'+e.stack+'</pre></div>';
+  console.error(e);
+}
+}); // end _campaignReady.then
+</script>
+</body>
+</html>
