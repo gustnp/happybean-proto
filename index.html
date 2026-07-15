@@ -1051,7 +1051,23 @@ window._campaignReady = (function(){
         return;
       }
 
+      // Firebase 5초 timeout fallback
+      var _fbResolved = false;
+      function _fbFallback(){
+        if(_fbResolved) return;
+        _fbResolved = true;
+        console.warn('[loader] Firebase timeout → 빈 캠페인으로 대체');
+        window.CAMPAIGNS = window.CAMPAIGNS || {};
+        window.CAMPAIGNS[qid] = makeBlankTpl();
+        resolve();
+      }
+      var _fbTimer = setTimeout(_fbFallback, 5000);
+
       window._fdb.ref('campaign_base/' + qid).once('value').then(function(snap){
+        clearTimeout(_fbTimer);
+        if(_fbResolved) return;
+        _fbResolved = true;
+        console.log('[loader] Firebase 로드 성공:', qid);
         window.CAMPAIGNS = window.CAMPAIGNS || {};
         var data = snap.val();
         if(data){
@@ -1062,11 +1078,10 @@ window._campaignReady = (function(){
           try{ window._fdb.ref('campaign_base/' + qid).set(tpl); }catch(e){}
         }
         resolve();
-      }).catch(function(){
-        // Firebase 실패해도 빈 캠페인으로 fallback
-        window.CAMPAIGNS = window.CAMPAIGNS || {};
-        window.CAMPAIGNS[qid] = makeBlankTpl();
-        resolve();
+      }).catch(function(err){
+        clearTimeout(_fbTimer);
+        console.warn('[loader] Firebase 에러:', err);
+        _fbFallback();
       });
     };
     document.head.appendChild(s);
