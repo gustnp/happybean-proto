@@ -2344,8 +2344,8 @@ try{
       if(m.type==='vote'){
         var isRes = m.mode==='result';
         html += '<div style="display:flex;gap:8px;margin:4px 0 12px;">'
-          +'<button onclick="window._switchVoteMode('+i+','vote')" style="flex:1;padding:9px 6px;border-radius:8px;cursor:pointer;font-size:12.5px;font-weight:700;border:1.5px solid '+(isRes?'rgba(255,255,255,.15)':'var(--primary)')+';background:'+(isRes?'transparent':'var(--primary)')+';color:'+(isRes?'rgba(255,255,255,.45)':'#fff')+';">🗳 투표 중</button>'
-          +'<button onclick="window._switchVoteMode('+i+','result')" style="flex:1;padding:9px 6px;border-radius:8px;cursor:pointer;font-size:12.5px;font-weight:700;border:1.5px solid '+(isRes?'var(--primary)':'rgba(255,255,255,.15)')+';background:'+(isRes?'var(--primary)':'transparent')+';color:'+(isRes?'#fff':'rgba(255,255,255,.45)')+';">📊 결과 발표</button>'
+          +'<button onclick="window._switchVoteMode('+i+',\'vote\')" style="flex:1;padding:9px 6px;border-radius:8px;cursor:pointer;font-size:12.5px;font-weight:700;border:1.5px solid '+(isRes?'rgba(255,255,255,.15)':'var(--primary)')+';background:'+(isRes?'transparent':'var(--primary)')+';color:'+(isRes?'rgba(255,255,255,.45)':'#fff')+';">🗳 투표 중</button>'
+          +'<button onclick="window._switchVoteMode('+i+',\'result\')" style="flex:1;padding:9px 6px;border-radius:8px;cursor:pointer;font-size:12.5px;font-weight:700;border:1.5px solid '+(isRes?'var(--primary)':'rgba(255,255,255,.15)')+';background:'+(isRes?'var(--primary)':'transparent')+';color:'+(isRes?'#fff':'rgba(255,255,255,.45)')+';">📊 결과 발표</button>'
           +'</div>';
         (m.options||[]).forEach(function(opt,oi){
           html += row('옵션 '+(oi+1)+' '+esc(opt.ico||''), 'missions.'+i+'.options.'+oi+'.label', true);
