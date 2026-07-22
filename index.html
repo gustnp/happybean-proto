@@ -119,6 +119,13 @@
     border:1px solid var(--line);margin-bottom:20px;white-space:pre-line;}
   .mbti-result-common{font-size:13px;line-height:1.7;color:var(--sub);margin-bottom:24px;
     padding:16px 18px;background:var(--band1);border-radius:12px;white-space:pre-line;}
+  .mbti-result-section{background:#fff;border:1px solid var(--line);border-radius:16px;
+    padding:18px 20px;margin-bottom:14px;text-align:left;}
+  .mbti-result-section-title{font-size:13px;font-weight:700;color:var(--primary);
+    margin-bottom:12px;letter-spacing:.02em;}
+  .mbti-result-row{font-size:13.5px;color:var(--sub);line-height:1.7;margin-bottom:6px;}
+  .mbti-result-row b{color:var(--fg);font-weight:700;margin-right:6px;}
+  .mbti-result-barrier{font-size:13.5px;color:var(--sub);line-height:1.8;}
   .mbti-retry-btn{font-size:13px;color:var(--sub);background:none;border:1px solid var(--line);
     border-radius:12px;padding:8px 18px;cursor:pointer;margin-top:8px;}
   .mbti-retry-btn:hover{border-color:var(--primary);color:var(--primary);}
@@ -1484,44 +1491,64 @@ try{
     },
     mbti: function(m, i){
       var qData = JSON.stringify([
-        {q:'약속 장소까지 가는 방법이 두 가지예요.\n당신은 어떤 루트를 선택할까요?',
-         a:'환승 두 번이어도 제일 빨리 도착하는 루트',b:'7분 더 걸려도 한 번에 편하게 가는 루트',tA:'A',tB:'B'},
-        {q:'지하철이 들어옵니다.\n당신은 본능적으로 어디를 노리나요?',
-         a:'내릴 때 유리한 문 앞 자리',b:'기대기 좋고 창밖도 보이는 구석 자리',tA:'C',tB:'D'},
-        {q:'처음 가는 장소에 갈 때, 당신의 스타일은?',
-         a:'출구 번호, 환승 위치, 몇 번째 칸까지 미리 체크',b:'일단 가보고 그 동네 분위기 따라 움직이기',tA:'E',tB:'D'},
-        {q:'붐비는 역, 엘리베이터 앞에 줄이 길어요.\n당신은 보통 어떤 생각이 먼저 드나요?',
-         a:'오케이, 난 다른 루트로 빠르게 이동한다',b:'유아차·휠체어·어르신이 더 필요할 수 있으니 여유있게 기다린다',tA:'A',tB:'F'},
-        {q:'붐비는 버스를 탔을 때 더 중요한 것은?',
-         a:'오래 타도 덜 힘든 자리나 편한 위치',b:'내릴 타이밍 놓치지 않게 문 쪽 포지션',tA:'B',tB:'C'},
-        {q:'친구가 "이 역 너무 복잡해… 어떻게 가?"라고 묻습니다. 당신의 반응은?',
-         a:'엘리베이터·에스컬레이터·출입구 위치까지 상세 브리핑',b:'아예 더 찾기 쉬운 장소로 약속을 바꾸자고 한다',tA:'E',tB:'F'},
-        {q:'유아차를 끄는 친구와 같이 이동해야 하는 날,\n당신이 먼저 준비하는 것은?',
-         a:'환승이 적고 한 번에 편하게 가는 길을 파악',b:'엘리베이터 위치, 경사로, 넓은 통로 동선까지 체크',tA:'B',tB:'F'},
-        {q:'대중교통 안에서의 나는 어느 쪽에 더 가까운가요?',
-         a:'창밖 구경, 사람 구경, 음악 듣기까지 이동도 하나의 콘텐츠',b:'그냥 빨리 도착하는 게 최고의 콘텐츠',tA:'D',tB:'A'},
-        {q:'내릴 역 도착 30초 전, 내 머릿속은?',
-         a:'어디 문으로 나가야 사람이 적고 쉽게 하차할 수 있을지 계산 완료',b:'다음 환승 계단과 연결되는 칸까지 이미 계산 완료',tA:'C',tB:'A'},
-        {q:'만원 버스에 어르신이나 큰 짐 든 사람이 탔습니다.\n당신의 몸이 먼저 반응하는 쪽은?',
-         a:'자리나 공간부터 슬쩍 만들어 드린다',b:'내 자리를 지키기 위해 꽉 잡고 버틴다',tA:'F',tB:'C'},
-        {q:'처음 가는 동네에서 더 설레는 순간은?',
-         a:'버스 타고 창밖 보면서 동네 분위기 구경할 때',b:'노선도 보고 제일 안 헤매는 출구를 찾았을 때',tA:'D',tB:'E'},
-        {q:'같이 만나기로 한 친구 중 한 명이 목발을 짚고 있어요.\n당신이 약속 장소를 정하는 기준은?',
-         a:'환승 없이 바로 갈 수 있는 곳',b:'내가 조금 돌아가더라도 다 같이 덜 불편한 곳',tA:'B',tB:'F'}
+        {q:'목적지까지 갈 대중교통 노선을 선택하는 나의 기준은?',
+         choices:[
+           {label:'A',text:'환승을 2번 더 하더라도, 목적지에 15분 일찍 도착하는 쾌속 노선이 최고다.',type:'A'},
+           {label:'B',text:'15분쯤 늦어도 괜찮다. 갈아타며 진 빼느니, 한 번 앉아서 끝까지 평화롭게 가는 무환승 노선이 진짜 승자다.',type:'B'},
+           {label:'C',text:'조금 돌아가도 괜찮다. 창밖 풍경이 예쁘고 가는 길에 기분이 좋아진다면, 그 노선은 이미 절반쯤 여행이다.',type:'C'},
+           {label:'D',text:'나만 빨리 가는 길보다, 같이 가는 사람이 덜 힘들고 모두가 편하게 이동할 수 있는 길이 진짜 좋은 길이다.',type:'D'}
+         ]},
+        {q:'지하철역 엘리베이터 앞에 유아차나 휠체어 이용자분들이 길게 줄을 서 계신다면?',
+         choices:[
+           {label:'A',text:'저 줄을 언제 다 기다려! 내 다리가 멀쩡한 이상, 미련 없이 에스컬레이터나 계단으로 광속 이탈한다.',type:'A'},
+           {label:'B',text:'열차 타기에도 급한데 저 줄까지... 빠르게 다른 루트 찾아서 조용히 이탈한다.',type:'B'},
+           {label:'C',text:'길게 늘어선 줄도 오늘의 도시 풍경처럼 잠시 바라본다. 그리고 더 느긋한 길로 사뿐히 방향을 튼다.',type:'C'},
+           {label:'D',text:'엘리베이터는 더 필요한 분들이 먼저 타셔야 마음이 편하다. 맨 뒤로 물러나 천천히 기다린다.',type:'D'}
+         ]},
+        {q:'지하철이나 버스 자리에 앉아 갈 때 나의 행동은?',
+         choices:[
+           {label:'A',text:'앉아 있는 건 몸뿐. 눈은 노선도, 손은 지도 앱, 다음 환승칸과 출구 번호까지 선점 완료다.',type:'A'},
+           {label:'B',text:'앉는 순간 콘텐츠 급유 시작. 릴스, 숏츠... 정신 차려보면 어느새 도착 직전인 도파민 정속주행 모드.',type:'B'},
+           {label:'C',text:'스마트폰은 잠시 넣어두고, 귀에는 음악. 창밖으로 스쳐 가는 햇살과 풍경을 보며 혼자만의 작은 여행을 즐긴다.',type:'C'},
+           {label:'D',text:'일단 앉지만 마음 한쪽엔 양보 대기 버튼이 켜져 있다. 더 필요한 사람이 보이는 순간, 내 자리는 바로 오픈.',type:'D'}
+         ]},
+        {q:'유아차를 끄는 친구와 오랜만에 서울 도심에서 만나기로 했을 때 나의 태도는?',
+         choices:[
+           {label:'A',text:'만나기도 전에 동선 브리핑 완료. 엘리베이터 위치, 경사로, 무장애 식당까지 정리해서 헤맬 틈 없는 만남을 세팅.',type:'A'},
+           {label:'B',text:'빠른 길보다 편한 길. 유아차 바퀴 덜 덜거리고, 사람에 덜 치이는 안전하고 한산한 장소로 결정.',type:'B'},
+           {label:'C',text:'유아차도 편히 지나가고 햇살도 예쁘게 내려앉는 길. 북적이는 핫플보다 풍경도 마음도 머물 수 있는 곳.',type:'C'},
+           {label:'D',text:'오늘 신발은 무조건 기동성 1등. 턱과 계단 앞에서 유아차도 번쩍, 분위기도 번쩍 살릴 준비하고 나간다.',type:'D'}
+         ]}
       ]);
       var typeData = JSON.stringify({
-        A:{name:'초고속 환승부스터형',  ico:'⚡',def:'환승도 게임처럼 깨는 타임어택형 이동러',
-           desc:'당신은 시간과 동선을 빠르게 읽는 데 강합니다.\n두 번 갈아타더라도 더 빨리 도착하면 만족도가 올라가고, 복잡한 역에서도 어디로 움직여야 시간을 아낄 수 있는지 금방 감을 잡습니다.\n대중교통을 단순한 이동수단이 아니라 하나의 전략 게임처럼 즐기는 편이라, 출퇴근길이나 약속 가는 길에도 은근한 승부욕이 발동하는 타입입니다.\n\n배려 포인트도 분명합니다. 당신의 빠른 동선 감각이 엘리베이터 위치, 덜 복잡한 길, 함께 가는 사람의 이동 편의까지 같이 보게 되면 누군가에게 정말 든든한 길잡이가 될 수 있습니다.'},
-        B:{name:'한방직진 평온러형',    ico:'🛤',def:'복잡한 환승보다 한 번에 편한 길이 최고인 타입',
-           desc:'당신은 "조금 늦어도 한 번에"라는 철학이 분명합니다.\n환승이 적고, 덜 헷갈리고, 몸이 덜 피곤한 루트를 선호합니다.\n겉보기에 느긋해 보여도 사실은 스트레스를 줄이는 루트를 잘 고르는 사람입니다.\n\n이 타입은 배려 감각도 꽤 실용적입니다. 교통약자나 짐이 많은 사람과 함께 이동할 때도 "복잡하지 않고 한 번에 가는 길"의 가치를 자연스럽게 이해합니다.'},
-        C:{name:'문앞포지션 스나이퍼형',ico:'🎯',def:'내릴 때 안 헤매는 게 진짜 고수라고 믿는 타입',
-           desc:'당신은 승하차 타이밍과 위치 선정에 강합니다.\n문 어디쯤에 서야 덜 막히는지, 어느 쪽이 내릴 때 유리한지 본능적으로 읽습니다.\n겉으로는 조용해 보여도 머릿속에서는 늘 최적의 포지션을 계산 중입니다.\n\n이 감각이 배려와 만나면 더 빛납니다. 유아차, 큰 짐, 천천히 이동하는 사람을 위해 공간을 비워 주고 흐름을 정리하는 데도 강한 생활형 센스가 있습니다.'},
-        D:{name:'창가감성 시티러버형',  ico:'🌇',def:'창밖 풍경까지 즐겨야 이동이 완성되는 타입',
-           desc:'당신은 이동 자체를 꽤 즐깁니다.\n버스 창밖 풍경, 처음 보는 동네, 사람들 분위기, 지하철 안에서 듣는 음악까지 모두 하나의 콘텐츠예요.\n빨리 도착하는 것도 좋지만, 가는 과정이 재미있어야 만족도가 높습니다.\n\n속도만 보지 않기 때문에 누군가의 느린 리듬이나 불편한 이동도 비교적 자연스럽게 받아들이는 타입입니다.'},
-        E:{name:'길안내 내비고수형',    ico:'🗺',def:'출구 번호·환승 칸·엘리베이터 위치까지 말해주는 인간 지도',
-           desc:'당신은 복잡한 정보를 정리해서 알려주는 능력이 뛰어납니다.\n단순히 길을 아는 게 아니라, 상대가 덜 헷갈리게 설명하는 데 강합니다.\n처음 가는 장소가 불안한 사람, 복잡한 역 구조가 부담스러운 사람에게 당신은 거의 이동 안정장치 같은 존재입니다.\n\n빠른 길보다 쉬운 길을 설명할 수 있다는 건 생각보다 큰 재능입니다. 베리어프리 관점에서도 아주 실질적인 도움을 주기 쉬운 유형입니다.'},
-        F:{name:'같이가요 템포메이트형', ico:'🤝',def:'나 혼자 빨리보다 같이 편하게 가는 게 더 중요한 타입',
-           desc:'당신은 사람의 속도와 분위기를 잘 맞춥니다.\n누군가 천천히 걷거나, 낯선 역에서 불안해하거나, 유아차·목발·큰 짐 때문에 이동이 조심스러운 상황에서도 재촉하기보다 "같이 가자"가 먼저 나옵니다.\n\n당신에게 이동은 단순히 도착의 문제가 아닙니다. 누구도 쫓기지 않고, 덜 불편하게 이동하는 것이 중요합니다. 이 테스트에서 가장 배려 스타일이 또렷하게 드러나는 유형이기도 합니다.'}
+        A:{name:'최단코스_급행열차', tag:'#최단코스_급행열차', ico:'🚄',
+           def:'"이동은 타임어택, 무의미한 지체는 유죄!"',
+           style:'초고속 우회 및 최단 동선 돌파',
+           like:'막힘없이 뻥 뚫린 환승 통로',
+           dislike:'환승 통로 한가운데 가로로 나란히 서서 걷는 일행',
+           barrier:'계단이나 에스컬레이터를 빠르게 올라가 비켜줘서, 교통약자분들에게 엘리베이터 공간을 가장 깔끔하게 양보해 주는 보이지 않는 기부왕입니다.',
+           best:'#걸어다니는_인간_네비', worst:'#마이웨이_정속주행러'},
+        B:{name:'마이웨이_정속주행러', tag:'#마이웨이_정속주행러', ico:'🎧',
+           def:'"내 에어팟 뒤로는 평화로운 우주가 흐른다"',
+           style:'정속 주행 및 개인 안식처 사수',
+           like:'구석자리, 한산한 버스 맨 뒷좌석',
+           dislike:'이미 꽉 찬 만원 대중교통',
+           barrier:'차량이 완전히 멈출 때까지 절대 서두르지 않는 안전 승객의 표본. 모두가 이렇게 탑승한다면 급정거 낙상 사고나 끼임 사고는 단 1건도 없을 것입니다.',
+           best:'#다정한_페이스메이커', worst:'#최단코스_급행열차'},
+        C:{name:'창밖구경_낭만여행자', tag:'#창밖구경_낭만여행자', ico:'🌅',
+           def:'"창밖의 노을과 음악만 있으면 어디든 갈 수 있어"',
+           style:'풍경 감상 중심의 힐링 드라이브',
+           like:'바깥 풍경이 예쁜 버스 노선, 한강을 지나는 지상철',
+           dislike:'창문이 막혀 바깥이 안 보이는 자리',
+           barrier:'모두가 날이 서 있는 출퇴근길에 세상의 숨 가쁜 속도를 정서적으로 늦춰주는 인간 완충지대. 대중교통을 더 안전하고 다정한 공간으로 만듭니다.',
+           best:'#다정한_페이스메이커', worst:'#걸어다니는_인간_네비'},
+        D:{name:'다정한_페이스메이커', tag:'#다정한_페이스메이커', ico:'🤗',
+           def:'"나 한 몸 좀 덜 편해도, 다 같이 무사히 갈 수 있다면!"',
+           style:'타인의 속도에 맞추는 에스코트 주행',
+           like:'양보와 배려의 눈빛이 오가는 따뜻한 객차',
+           dislike:'문 앞을 가로막고 비켜주지 않는 이기적인 탑승자',
+           barrier:'따뜻한 눈빛과 사소한 양보로 진정한 배리어프리를 실천하는 파트너. 법과 제도가 미처 채우지 못하는 빈틈을 다정한 미소와 행동으로 메꿔줍니다.',
+           best:'#마이웨이_정속주행러', worst:'없음! 당신의 다정함 앞에서 안 맞는 유형은 없어요 🥹'}
       });
       return '<section class="band '+bandCls(m.band)+'" data-section="missions.'+i+'">'
         +missionBar(m,i)
@@ -1731,14 +1758,15 @@ try{
         +'<div class="mbti-q-num">Q'+(idx+1)+'</div>'
         +'<div class="mbti-q-text">'+q.q.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/\n/g,'<br>')+'</div>'
         +'<div class="mbti-choices">'
-        +'<button class="mbti-choice" data-choice="A"><span class="mbti-choice-label">A</span><span>'+q.a+'</span></button>'
-        +'<button class="mbti-choice" data-choice="B"><span class="mbti-choice-label">B</span><span>'+q.b+'</span></button>'
+        + q.choices.map(function(c){
+            return '<button class="mbti-choice" data-choice="'+c.type+'"><span class="mbti-choice-label">'+c.label+'</span><span>'+c.text+'</span></button>';
+          }).join('')
         +'</div></div>';
       container.querySelectorAll('.mbti-choice').forEach(function(btn){
         btn.addEventListener('click', function(){
           var midx = +container.closest('.mbti-quiz').dataset.mbtiMidx;
           var st = window._mbtiState[midx];
-          var typeKey = btn.dataset.choice === 'A' ? qs[st.qIdx].tA : qs[st.qIdx].tB;
+          var typeKey = btn.dataset.choice; // A, B, C, D → 유형 직접 매핑
           st.scores[typeKey] = (st.scores[typeKey]||0) + 1;
           st.qIdx++;
           if(st.qIdx >= qs.length){
@@ -1750,10 +1778,20 @@ try{
             var t = types[bestKey];
             var commonText = '대중교통 취향은 단순한 습관 같지만,\n그 안에는 내 속도, 내 감성, 내 동선 감각, 그리고 나만의 배려 방식이 숨어 있습니다.\n\n친구들과 결과를 공유해 보고, 서로의 이동 스타일이 얼마나 다른지 확인해 보세요.';
             container.innerHTML = '<div class="mbti-screen">'
-              +'<div class="mbti-result-badge">'+t.ico+' '+t.name+'</div>'
+              +'<div class="mbti-result-badge">'+t.ico+' '+t.tag+'</div>'
               +'<div class="mbti-result-def">'+t.def+'</div>'
-              +'<div class="mbti-result-desc">'+t.desc.replace(/\n/g,'<br>')+'</div>'
-              +'<div class="mbti-result-common">'+commonText.replace(/\n/g,'<br>')+'</div>'
+              +'<div class="mbti-result-section"><div class="mbti-result-section-title">🗺 나의 이동 프로필</div>'
+              +'<div class="mbti-result-row"><b>이동 스타일</b> '+t.style+'</div>'
+              +'<div class="mbti-result-row"><b>선호</b> '+t.like+'</div>'
+              +'<div class="mbti-result-row"><b>기피</b> '+t.dislike+'</div>'
+              +'</div>'
+              +'<div class="mbti-result-section"><div class="mbti-result-section-title">♿ 배리어프리 배려지수</div>'
+              +'<div class="mbti-result-barrier">'+t.barrier+'</div>'
+              +'</div>'
+              +'<div class="mbti-result-section"><div class="mbti-result-section-title">💞 이동 궁합</div>'
+              +'<div class="mbti-result-row"><b>최고의 궁합</b> '+t.best+'</div>'
+              +'<div class="mbti-result-row"><b>안 맞는 궁합</b> '+t.worst+'</div>'
+              +'</div>'
               +'<button class="pill-btn cta-share-btn" style="margin-bottom:10px;">결과 공유하기</button><br>'
               +'<button class="mbti-retry-btn">↺ 다시 하기</button>'
               +'</div>';
