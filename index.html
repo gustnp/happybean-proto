@@ -1568,7 +1568,7 @@ try{
         +'</div></section>';
     },
     mbti: function(m, i){
-      var qData = JSON.stringify([
+      var qData = JSON.stringify(m.questions || [
         {q:'목적지까지 갈 대중교통 노선을 선택하는 나의 기준은?',
          choices:[
            {label:'A',text:'환승을 2번 더 하더라도, 목적지에 15분 일찍 도착하는 쾌속 노선이 최고다.',type:'A'},
@@ -1598,7 +1598,7 @@ try{
            {label:'D',text:'오늘 신발은 무조건 기동성 1등. 턱과 계단 앞에서 유아차도 번쩍, 분위기도 번쩍 살릴 준비하고 나간다.',type:'D'}
          ]}
       ]);
-      var typeData = JSON.stringify({
+      var typeData = JSON.stringify(m.types || {
         A:{name:'최단코스_급행열차', tag:'#최단코스_급행열차', ico:'🚄',
            def:'"이동은 타임어택, 무의미한 지체는 유죄!"',
            style:'초고속 우회 및 최단 동선 돌파',
@@ -1679,32 +1679,28 @@ try{
         + '<div class="scene-after"><div class="mw-belt">'
         + '<span class="mw-arrow">›</span><span class="mw-arrow">›</span><span class="mw-arrow">›</span><span class="mw-arrow">›</span><span class="mw-arrow">›</span>'
         + '</div></div>'
-        + '<div class="dragcta-scene-desc">어르신이 지나갈 땐
-보도블록이 무빙워크로</div>'
+        + '<div class="dragcta-scene-desc">어르신이 지나갈 땐<br>보도블록이 무빙워크로</div>'
         + '</div>'
         // Scene 2: 유아차 → 넓은 문
         + '<div class="dragcta-scene" data-dscene="stroller">'
         + '<div class="dragcta-scene-title">좁은 문</div>'
         + '<div class="scene-before" style="gap:3px;"><div class="door-frame"></div><div class="door-narrow"></div><div class="door-frame"></div></div>'
         + '<div class="scene-after" style="gap:3px;"><div class="door-frame"></div><div class="door-wide"></div><div class="door-frame"></div></div>'
-        + '<div class="dragcta-scene-desc">유아차가 다가가면
-문이 사르르 넓어져요</div>'
+        + '<div class="dragcta-scene-desc">유아차가 다가가면<br>문이 사르르 넓어져요</div>'
         + '</div>'
         // Scene 3: 휠체어 → 경사로
         + '<div class="dragcta-scene" data-dscene="wheelchair">'
         + '<div class="dragcta-scene-title">계단</div>'
         + '<div class="scene-before">'+stairsHTML+'</div>'
         + '<div class="scene-after"><div class="ramp-shape"><div class="ramp-surface"></div><div class="ramp-glow"></div></div></div>'
-        + '<div class="dragcta-scene-desc">휠체어가 오면 저절로
-빛나는 경사로가 생겨요</div>'
+        + '<div class="dragcta-scene-desc">휠체어가 오면 저절로<br>빛나는 경사로가 생겨요</div>'
         + '</div>'
         // Scene 4: 시각장애인 → 점자 지도
         + '<div class="dragcta-scene" data-dscene="blind">'
         + '<div class="dragcta-scene-title">지도</div>'
         + '<div class="scene-before">'+flatMap+'</div>'
         + '<div class="scene-after">'+dotMap3d+'</div>'
-        + '<div class="dragcta-scene-desc">손을 대면 동선이
-입체 도트로 솟아올라요</div>'
+        + '<div class="dragcta-scene-desc">손을 대면 동선이<br>입체 도트로 솟아올라요</div>'
         + '</div>'
         + '</div></div>' // scenes, wrap
         + (m.bean?'<div style="margin-top:20px;"><span class="bean">'+esc(m.bean)+'</span></div>':'')
