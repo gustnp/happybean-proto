@@ -129,6 +129,77 @@
   .mbti-retry-btn{font-size:13px;color:var(--sub);background:none;border:1px solid var(--line);
     border-radius:12px;padding:8px 18px;cursor:pointer;margin-top:8px;}
   .mbti-retry-btn:hover{border-color:var(--primary);color:var(--primary);}
+  /* ── 드래그 CTA ──────────────────────────────────────── */
+  .dragcta-hint{font-size:13px;color:var(--sub);margin-bottom:20px;font-style:italic;}
+  .dragcta-chars{display:flex;justify-content:center;gap:12px;margin-bottom:28px;flex-wrap:wrap;}
+  .dragcta-char{display:flex;flex-direction:column;align-items:center;gap:6px;
+    background:#fff;border:2px solid var(--line);border-radius:16px;
+    padding:14px 18px;cursor:grab;font-size:28px;user-select:none;
+    transition:transform .15s,box-shadow .15s;min-width:80px;touch-action:none;}
+  .dragcta-char span{font-size:11px;color:var(--sub);font-weight:600;}
+  .dragcta-char:hover{transform:translateY(-3px);box-shadow:0 6px 20px rgba(0,0,0,.12);border-color:var(--primary);}
+  .dragcta-char.dragging{opacity:.5;transform:scale(.92);}
+  .dragcta-char.used{opacity:.35;cursor:not-allowed;pointer-events:none;filter:grayscale(1);}
+  .dragcta-scenes{display:grid;grid-template-columns:1fr 1fr;gap:16px;max-width:560px;margin:0 auto;}
+  @media(max-width:480px){.dragcta-scenes{grid-template-columns:1fr;}}
+  .dragcta-scene{background:#fff;border:2px dashed var(--line);border-radius:20px;
+    padding:20px 16px 14px;text-align:center;transition:border-color .2s,background .2s,transform .1s;
+    position:relative;overflow:hidden;}
+  .dragcta-scene.drag-over{border-color:var(--primary);background:rgba(0,128,94,.05);
+    border-style:solid;transform:scale(1.02);}
+  .dragcta-scene.activated{border-color:var(--primary);border-style:solid;background:rgba(0,128,94,.04);}
+  .dragcta-scene.wrong-drop{animation:drag-shake .4s ease;}
+  @keyframes drag-shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-7px)}75%{transform:translateX(7px)}}
+  .dragcta-scene-title{font-size:11px;font-weight:700;color:var(--sub);margin-bottom:12px;
+    text-transform:uppercase;letter-spacing:.06em;}
+  .dragcta-scene-desc{font-size:12px;color:var(--sub);margin-top:12px;line-height:1.6;white-space:pre-line;}
+  .dragcta-scene.activated .dragcta-scene-desc{color:var(--primary);font-weight:600;}
+  .dragcta-scene .scene-before,.dragcta-scene .scene-after{height:84px;display:flex;
+    align-items:center;justify-content:center;}
+  .dragcta-scene .scene-after{display:none;}
+  .dragcta-scene.activated .scene-before{display:none;}
+  .dragcta-scene.activated .scene-after{display:flex;animation:scene-reveal .4s ease-out;}
+  @keyframes scene-reveal{from{opacity:0;transform:scale(.9)}to{opacity:1;transform:scale(1)}}
+  /* 보도블록 타일 */
+  .sb-tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:3px;width:96px;}
+  .sb-tile{height:18px;background:#d0d0d0;border-radius:2px;}
+  /* 무빙워크 */
+  .mw-belt{background:#333;border-radius:10px;width:110px;height:40px;
+    display:flex;align-items:center;justify-content:center;gap:8px;overflow:hidden;position:relative;}
+  .mw-arrow{font-size:18px;color:#00c87a;animation:mw-move 1.2s linear infinite;line-height:1;}
+  .mw-arrow:nth-child(2){animation-delay:.25s;}
+  .mw-arrow:nth-child(3){animation-delay:.5s;}
+  .mw-arrow:nth-child(4){animation-delay:.75s;}
+  .mw-arrow:nth-child(5){animation-delay:1s;}
+  @keyframes mw-move{0%{opacity:0;transform:translateX(-10px)}40%{opacity:1}100%{opacity:0;transform:translateX(10px)}}
+  /* 좁은 문 */
+  .door-frame{width:5px;height:70px;background:#999;border-radius:2px;}
+  .door-narrow{width:34px;height:62px;background:var(--primary);border-radius:4px 4px 0 0;
+    box-shadow:inset -4px 0 8px rgba(0,0,0,.15);}
+  /* 넓은 문 */
+  .door-wide{width:68px;height:62px;border-radius:4px 4px 0 0;
+    background:linear-gradient(135deg,var(--primary),#00d985);
+    box-shadow:0 0 20px rgba(0,200,122,.45);animation:door-expand .5s ease-out;}
+  @keyframes door-expand{from{width:34px;opacity:.6}to{width:68px;opacity:1}}
+  /* 계단 */
+  .stairs-shape{position:relative;width:84px;height:70px;}
+  .stair-step{position:absolute;background:#bbb;border-radius:1px 1px 0 0;}
+  /* 경사로 */
+  .ramp-shape{width:96px;height:70px;position:relative;}
+  .ramp-surface{position:absolute;bottom:0;left:0;right:0;height:70px;border-radius:0 0 4px 0;
+    background:linear-gradient(150deg,rgba(0,200,122,.2),rgba(0,200,122,.7));
+    clip-path:polygon(0 100%,100% 100%,100% 5%);}
+  .ramp-glow{position:absolute;bottom:0;left:0;right:0;height:3px;
+    background:linear-gradient(90deg,transparent,#00c87a,transparent);
+    animation:ramp-pulse 1.6s ease-in-out infinite;}
+  @keyframes ramp-pulse{0%,100%{opacity:.4;box-shadow:none}50%{opacity:1;box-shadow:0 0 12px #00c87a}}
+  /* 점자 지도 */
+  .flat-map-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;width:84px;}
+  .flat-dot{width:13px;height:13px;background:#e0e0e0;border-radius:50%;}
+  .dot-map-3d{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;width:84px;align-items:end;}
+  .dot-3d{width:13px;border-radius:50% 50% 50% 50% / 60% 60% 40% 40%;
+    background:var(--primary);animation:dot-rise .5s ease-out both;}
+  @keyframes dot-rise{from{height:4px;opacity:.2}to{opacity:1}}
   /* ── 투표 컴포넌트 ──────────────────────────────────── */
   .vote-opts{display:flex;flex-direction:column;gap:10px;max-width:580px;margin:28px auto 0;}
   .vote-opt{display:flex;align-items:center;gap:14px;background:#fff;border:1.5px solid var(--line);
@@ -1301,7 +1372,8 @@ try{
     {type:'video',    ico:'▶️', name:'영상 임베드',   desc:'동영상 플레이스홀더'},
     {type:'custom',   ico:'✨', name:'커스텀',        desc:'자유 형식 인터랙션'},
     {type:'mbti',     ico:'🚇', name:'MBTI 테스트',   desc:'대중교통 라이프스타일 유형'},
-    {type:'vote',     ico:'🗳', name:'주제 투표',     desc:'투표 → 결과 발표 전환'}
+    {type:'vote',     ico:'🗳', name:'주제 투표',     desc:'투표 → 결과 발표 전환'},
+    {type:'dragcta',  ico:'🎪', name:'드래그 CTA',    desc:'인물 드래그 → 장면 변환 인터랙션'}
   ];
   var MISSION_DEFAULTS = {
     quiz:     {type:'quiz',band:'band1',section:'참여 퀴즈',question:'질문을 입력하세요',
@@ -1338,7 +1410,13 @@ try{
     mbti:     {type:'mbti',band:'band1',title:'나의 대중교통 라이프스타일 MBTI',
                sub:'대중교통 이용 습관으로 알아보는 나만의 이동 유형',
                intro:'버스 탈 때도 성격이 나오고, 지하철 기다릴 때도 취향이 드러납니다.\n문 앞에 설지, 창가를 고를지, 환승 2번을 감수할지, 조금 돌아가더라도 편한 길을 택할지.\n\n이 테스트는 대중교통 이용 시 자연스럽게 드러나는 나만의 라이프스타일을 알아보는 테스트입니다. 그리고 그 안에 슬쩍 숨어 있는 나의 배려 방식도 함께 확인할 수 있어요.\n\n정답은 없습니다. 그냥 제일 나다운 쪽을 고르면 됩니다.',
-               bean:'미션 완료 시 콩 1개',cta:'결과 공유하기'}
+               bean:'미션 완료 시 콩 1개',cta:'결과 공유하기'},
+    dragcta:  {type:'dragcta',band:'band2',title:'내가 바꾸는 배리어프리 서울',
+               sub:'각 인물을 해당 장면에 드래그해 보세요.\n그 이동이 더 쉬워진다면, 서울은 달라집니다.',
+               bean:'4가지 장면을 모두 완성하면 콩 1개 적립',
+               plan:'배리어프리 교통 인프라를 인터랙션으로 체험. 교통약자별 필요 환경을 직접 만들어보는 참여형 미션.',
+               spec:{interaction:'드래그 앤 드롭: 인물 캐릭터 → 해당 장면. 올바른 매칭 시 장면 전환 애니메이션. 4가지 모두 완성 시 콩 지급.',
+                     assets:['인물 이모지 4종','장면 CSS 애니메이션 (무빙워크/넓은문/경사로/점자지도)']}}
   };
 
   function getMissionTypeInfo(type){
@@ -1563,6 +1641,74 @@ try{
         +'</div></div>'
         +(m.bean?'<div><span class="bean">'+esc(m.bean)+'</span></div>':'')
         +'</div></section>';
+,
+    dragcta: function(m, i){
+      // 계단 HTML
+      var stairsHTML = '<div class="stairs-shape">';
+      var steps = [{l:0,b:0,w:84,h:14},{l:0,b:14,w:63,h:14},{l:0,b:28,w:42,h:14},{l:0,b:42,w:21,h:14}];
+      steps.forEach(function(s){
+        stairsHTML += '<div class="stair-step" style="left:'+s.l+'px;bottom:'+s.b+'px;width:'+s.w+'px;height:'+s.h+'px"></div>';
+      });
+      stairsHTML += '</div>';
+      // 점자지도 높이 패턴
+      var dotH = [3,5,2,4,1, 2,4,3,5,2, 1,3,5,2,4, 4,2,1,3,5, 5,3,2,4,1];
+      var flatMap = '<div class="flat-map-grid">' + Array(25).fill('<div class="flat-dot"></div>').join('') + '</div>';
+      var dotMap3d = '<div class="dot-map-3d">' + dotH.map(function(h,idx){
+        return '<div class="dot-3d" style="height:'+Math.round(h*3+5)+'px;animation-delay:'+(idx*35)+'ms"></div>';
+      }).join('') + '</div>';
+      return '<section class="band '+bandCls(m.band)+'" data-section="missions.'+i+'">'
+        + missionBar(m,i)
+        + '<div class="container center stack">'
+        + (m.title?'<div class="h2 pre"'+edAttr('missions.'+i+'.title')+'>'+pre(m.title)+'</div>':'')
+        + (m.sub?'<div class="lead pre"'+edAttr('missions.'+i+'.sub')+'>'+pre(m.sub)+'</div>':'')
+        + '<div class="dragcta-wrap" data-midx="'+i+'">'
+        + '<div class="dragcta-hint">아래 인물을 드래그해서 알맞은 장면에 놓아보세요 ↓</div>'
+        + '<div class="dragcta-chars">'
+        + '<div class="dragcta-char" draggable="true" data-dtype="senior">🧓<span>어르신</span></div>'
+        + '<div class="dragcta-char" draggable="true" data-dtype="stroller">👶<span>유아차</span></div>'
+        + '<div class="dragcta-char" draggable="true" data-dtype="wheelchair">♿<span>휠체어</span></div>'
+        + '<div class="dragcta-char" draggable="true" data-dtype="blind">🦯<span>시각장애인</span></div>'
+        + '</div>'
+        + '<div class="dragcta-scenes">'
+        // Scene 1: 어르신 → 무빙워크
+        + '<div class="dragcta-scene" data-dscene="senior">'
+        + '<div class="dragcta-scene-title">보도블록</div>'
+        + '<div class="scene-before"><div class="sb-tiles">'
+        + Array(8).fill('<div class="sb-tile"></div>').join('')
+        + '</div></div>'
+        + '<div class="scene-after"><div class="mw-belt">'
+        + '<span class="mw-arrow">›</span><span class="mw-arrow">›</span><span class="mw-arrow">›</span><span class="mw-arrow">›</span><span class="mw-arrow">›</span>'
+        + '</div></div>'
+        + '<div class="dragcta-scene-desc">어르신이 지나갈 땐
+보도블록이 무빙워크로</div>'
+        + '</div>'
+        // Scene 2: 유아차 → 넓은 문
+        + '<div class="dragcta-scene" data-dscene="stroller">'
+        + '<div class="dragcta-scene-title">좁은 문</div>'
+        + '<div class="scene-before" style="gap:3px;"><div class="door-frame"></div><div class="door-narrow"></div><div class="door-frame"></div></div>'
+        + '<div class="scene-after" style="gap:3px;"><div class="door-frame"></div><div class="door-wide"></div><div class="door-frame"></div></div>'
+        + '<div class="dragcta-scene-desc">유아차가 다가가면
+문이 사르르 넓어져요</div>'
+        + '</div>'
+        // Scene 3: 휠체어 → 경사로
+        + '<div class="dragcta-scene" data-dscene="wheelchair">'
+        + '<div class="dragcta-scene-title">계단</div>'
+        + '<div class="scene-before">'+stairsHTML+'</div>'
+        + '<div class="scene-after"><div class="ramp-shape"><div class="ramp-surface"></div><div class="ramp-glow"></div></div></div>'
+        + '<div class="dragcta-scene-desc">휠체어가 오면 저절로
+빛나는 경사로가 생겨요</div>'
+        + '</div>'
+        // Scene 4: 시각장애인 → 점자 지도
+        + '<div class="dragcta-scene" data-dscene="blind">'
+        + '<div class="dragcta-scene-title">지도</div>'
+        + '<div class="scene-before">'+flatMap+'</div>'
+        + '<div class="scene-after">'+dotMap3d+'</div>'
+        + '<div class="dragcta-scene-desc">손을 대면 동선이
+입체 도트로 솟아올라요</div>'
+        + '</div>'
+        + '</div></div>' // scenes, wrap
+        + (m.bean?'<div style="margin-top:20px;"><span class="bean">'+esc(m.bean)+'</span></div>':'')
+        + '</div></section>';
     }
   };
 
@@ -1825,6 +1971,42 @@ try{
       });
     });
     /* ── MBTI 핸들러 끝 ─── */
+
+    /* ── 드래그 CTA 이벤트 핸들러 ─── */
+    document.querySelectorAll('.dragcta-char').forEach(function(char){
+      char.addEventListener('dragstart', function(e){
+        e.dataTransfer.setData('text/plain', char.dataset.dtype);
+        e.dataTransfer.effectAllowed = 'move';
+        char.classList.add('dragging');
+      });
+      char.addEventListener('dragend', function(){ char.classList.remove('dragging'); });
+    });
+    document.querySelectorAll('.dragcta-scene').forEach(function(scene){
+      scene.addEventListener('dragover', function(e){
+        e.preventDefault();
+        if(!scene.classList.contains('activated')) scene.classList.add('drag-over');
+      });
+      scene.addEventListener('dragleave', function(){ scene.classList.remove('drag-over'); });
+      scene.addEventListener('drop', function(e){
+        e.preventDefault();
+        scene.classList.remove('drag-over');
+        if(scene.classList.contains('activated')) return;
+        var dtype = e.dataTransfer.getData('text/plain');
+        if(dtype === scene.dataset.dscene){
+          scene.classList.add('activated');
+          var wrap = scene.closest('.dragcta-wrap');
+          var usedChar = wrap.querySelector('.dragcta-char[data-dtype="'+dtype+'"]');
+          if(usedChar) usedChar.classList.add('used');
+          var allDone = Array.from(wrap.querySelectorAll('.dragcta-scene'))
+            .every(function(s){ return s.classList.contains('activated'); });
+          if(allDone) toast('🌱 미션 완료! 콩 1개 적립!', 'bean');
+        } else {
+          scene.classList.add('wrong-drop');
+          setTimeout(function(){ scene.classList.remove('wrong-drop'); }, 450);
+        }
+      });
+    });
+    /* ── 드래그 CTA 핸들러 끝 ─── */
 
     /* ── 투표 컴포넌트 이벤트 핸들러 ─── */
     // 투표 옵션 선택
